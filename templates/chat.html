@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Eron - Chat</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #111b21 url('https://i.imgur.com/3b3ZQ6k.png');
+            background-size: 400px 400px;
+            color: #222;
+            margin: 0;
+        }
+        .chat-box {
+            max-width: 480px;
+            height: 80vh;
+            margin: 40px auto;
+            background: #222e35cc;
+            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px #0003;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #202c33;
+            color: #fff;
+            padding: 16px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-bottom: 1px solid #222;
+        }
+        .messages {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 24px 12px 12px 12px;
+            overflow-y: auto;
+        }
+        .bubble {
+            max-width: 70%;
+            padding: 10px 16px;
+            border-radius: 18px;
+            font-size: 1.05em;
+            line-height: 1.4;
+            word-break: break-word;
+            display: inline-block;
+            box-shadow: 0 1px 2px #0002;
+        }
+        .bubble.user {
+            background: #d9fdd3;
+            color: #222;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            margin-left: 30%;
+        }
+        .bubble.eron {
+            background: #fff;
+            color: #222;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            margin-right: 30%;
+        }
+        .msg-label {
+            font-size: 0.8em;
+            opacity: 0.6;
+            margin-bottom: 2px;
+        }
+        .chat-input {
+            display: flex;
+            padding: 12px;
+            background: #202c33;
+            border-top: 1px solid #222;
+        }
+        .chat-input input[type=text] {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px 0 0 8px;
+            border: none;
+            font-size: 1em;
+            background: #fff;
+            color: #222;
+            outline: none;
+        }
+        .chat-input button {
+            padding: 12px 24px;
+            border: none;
+            background: #25d366;
+            color: #fff;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: background 0.2s;
+        }
+        .chat-input button:hover { background: #128c7e; }
+        @media (max-width: 600px) {
+            .chat-box { max-width: 100vw; height: 100vh; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-box">
+        <div class="chat-header" style="display:flex;align-items:center;gap:16px;">
+            <a href="/personalize" title="Alterar perfil do bot">
+                <img src="{{ bot_avatar }}" alt="Avatar do bot" style="height:48px;width:48px;border-radius:50%;object-fit:cover;background:#eee;cursor:pointer;transition:box-shadow 0.2s;box-shadow:0 0 0 0 #25d366;" onmouseover="this.style.boxShadow='0 0 0 4px #25d36655'" onmouseout="this.style.boxShadow='0 0 0 0 #25d366'">
+            </a>
+            <span style="font-size:1.2em;font-weight:bold;color:#fff;">{{ bot_name or 'Eron' }}</span>
+        </div>
+        <div class="messages" id="messages">
+            {% for msg in messages %}
+                <div class="bubble user">
+                    <div class="msg-label">{{ user_name or 'Você' }}</div>
+                    {{ msg[1] }}
+                </div>
+                <div class="bubble eron">
+                    <div class="msg-label">{{ bot_name or 'Eron' }}</div>
+                    {{ msg[2] }}
+                    <div style="margin-top:4px; font-size:0.9em; color:#888;">
+                        {% set fb = feedbacks.get((msg[1], msg[2])) %}
+                        {% if fb %}
+                            <span style="font-size:0.9em;">Feedback enviado: <span style="font-size:1.1em;">{{ fb }}</span></span>
+                        {% else %}
+                            <form method="post" style="display:inline;">
+                                <input type="hidden" name="feedback_pergunta" value="{{ msg[1] }}">
+                                <input type="hidden" name="feedback_resposta" value="{{ msg[2] }}">
+                                <button type="submit" name="feedback" value="👍" style="background:none;border:none;cursor:pointer;font-size:1em;">👍</button>
+                                <button type="submit" name="feedback" value="👎" style="background:none;border:none;cursor:pointer;font-size:1em;">👎</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <form method="post" class="chat-input">
+            <input type="text" name="message" placeholder="Digite sua mensagem..." autocomplete="off" required>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+</body>
+</html>

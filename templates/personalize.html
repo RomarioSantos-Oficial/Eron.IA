@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Personalizar Chat</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #111b21; color: #222; margin: 0; }
+        .box { max-width: 400px; margin: 60px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #0002; padding: 32px 24px; }
+        h2 { text-align: center; color: #25d366; margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type=text] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 18px; font-size: 1em; }
+        button { width: 100%; padding: 12px; background: #25d366; color: #fff; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #128c7e; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Personalize sua experiência</h2>
+        {% if error %}
+            <div style="color: #b71c1c; margin-bottom: 16px; text-align:center;">{{ error }}</div>
+        {% endif %}
+    <form method="post" enctype="multipart/form-data">
+            <label for="user_name">Seu nome:</label>
+            <input type="text" id="user_name" name="user_name" placeholder="Como você quer ser chamado?" required value="{{ user_name|default('') }}">
+            <label for="user_age">Sua idade:</label>
+            <input type="number" id="user_age" name="user_age" min="1" max="120" required value="{{ user_age|default('') }}">
+            <label for="user_gender">Seu gênero:</label>
+            <select id="user_gender" name="user_gender" required>
+                <option value="" {% if not user_gender %}selected{% endif %}>Selecione</option>
+                <option value="masculino" {% if user_gender=='masculino' %}selected{% endif %}>Masculino</option>
+                <option value="feminino" {% if user_gender=='feminino' %}selected{% endif %}>Feminino</option>
+                <option value="outro" {% if user_gender=='outro' %}selected{% endif %}>Outro/Prefiro não informar</option>
+            </select>
+            <label for="bot_name">Nome do bot:</label>
+            <input type="text" id="bot_name" name="bot_name" placeholder="Como quer chamar o bot?" required value="{{ bot_name|default('') }}">
+            <label for="bot_gender">Gênero do bot:</label>
+            <select id="bot_gender" name="bot_gender" required>
+                <option value="" {% if not bot_gender %}selected{% endif %}>Selecione</option>
+                <option value="masculino" {% if bot_gender=='masculino' %}selected{% endif %}>Masculino</option>
+                <option value="feminino" {% if bot_gender=='feminino' %}selected{% endif %}>Feminino</option>
+                <option value="outro" {% if bot_gender=='outro' %}selected{% endif %}>Outro/Prefiro não informar</option>
+            </select>
+            <label for="bot_avatar">Avatar do bot (opcional):</label>
+            <input type="file" id="bot_avatar" name="bot_avatar" accept="image/*">
+            <button type="submit">Salvar e continuar</button>
+        </form>
+    </div>
+</body>
+</html>
