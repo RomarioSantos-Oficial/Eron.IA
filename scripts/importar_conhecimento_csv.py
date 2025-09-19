@@ -3,12 +3,7 @@ import csv
 import os
 import sys
 
- # Uso: python importar_conhecimento_csv.py <arquivo_csv> <banco_destino.db>
- # O CSV pode ter colunas: pergunta,resposta,contexto,autor,midia
-
 def importar_csv_para_banco(csv_path, db_path):
-    # Uso: python importar_conhecimento_csv.py <arquivo_csv> <banco_destino.db>
-    # O CSV pode ter colunas: pergunta,resposta,contexto,autor,midia
     if not os.path.exists(csv_path):
         print(f"Arquivo CSV não encontrado: {csv_path}")
         return
@@ -44,4 +39,10 @@ if __name__ == '__main__':
     if len(sys.argv) < 3:
         print("Uso: python importar_conhecimento_csv.py <arquivo_csv> <banco_destino.db>")
         sys.exit(1)
-    importar_csv_para_banco(sys.argv[1], sys.argv[2])
+    
+    csv_file = sys.argv[1]
+    db_file = sys.argv[2]
+    memoria_dir = os.path.join(os.path.dirname(__file__), '..', 'memoria')
+    db_path = os.path.join(memoria_dir, db_file)
+    
+    importar_csv_para_banco(csv_file, db_path)

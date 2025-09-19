@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Preferências Emocionais - Eron.IA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #5f6368;
+        }
+        .emotion-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input[type="range"] {
+            flex-grow: 1;
+        }
+        .emotion-checkbox {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        .emotion-checkbox input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        .emotion-history {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dadce0;
+        }
+        .emotion-entry {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .emotion-entry .time {
+            color: #5f6368;
+            font-size: 0.9em;
+        }
+        .emotion-entry .emotion {
+            color: #1a73e8;
+            font-weight: bold;
+        }
+        .settings-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .settings-section h3 {
+            margin-top: 0;
+            color: #1a73e8;
+        }
+        .emotion-icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+        .error {
+            color: #d93025;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .success {
+            color: #188038;
+            margin: 10px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Preferências Emocionais</h1>
+        
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success">{{ success }}</div>
+        {% endif %}
+        
+        <form method="post">
+            <div class="settings-section">
+                <h3>Detecção de Emoções</h3>
+                <div class="form-group">
+                    <div class="emotion-checkbox">
+                        <input type="checkbox" id="emotion_detection" name="emotion_detection" 
+                               {% if preferences.emotion_detection_enabled %}checked{% endif %}>
+                        <label for="emotion_detection">Habilitar detecção de emoções</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Emoções Preferidas</h3>
+                <div class="form-group">
+                    <div class="emotion-checkbox">
+                        <input type="checkbox" name="emotions" value="feliz"
+                               {% if 'feliz' in preferences.preferred_emotions %}checked{% endif %}>
+                        <label>😊 Feliz</label>
+                    </div>
+                    <div class="emotion-checkbox">
+                        <input type="checkbox" name="emotions" value="animado"
+                               {% if 'animado' in preferences.preferred_emotions %}checked{% endif %}>
+                        <label>😃 Animado</label>
+                    </div>
+                    <div class="emotion-checkbox">
+                        <input type="checkbox" name="emotions" value="calmo"
+                               {% if 'calmo' in preferences.preferred_emotions %}checked{% endif %}>
+                        <label>😌 Calmo</label>
+                    </div>
+                    <div class="emotion-checkbox">
+                        <input type="checkbox" name="emotions" value="neutro"
+                               {% if 'neutro' in preferences.preferred_emotions %}checked{% endif %}>
+                        <label>😐 Neutro</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Intensidade Emocional</h3>
+                <div class="form-group">
+                    <div class="emotion-range">
+                        <span>Baixa</span>
+                        <input type="range" name="emotional_range" min="1" max="3" 
+                               value="{{ preferences.emotional_range }}">
+                        <span>Alta</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit">Salvar Preferências</button>
+        </form>
+        
+        {% if emotion_history %}
+        <div class="emotion-history">
+            <h3>Histórico de Emoções</h3>
+            {% for entry in emotion_history %}
+            <div class="emotion-entry">
+                <div class="time">{{ entry.timestamp }}</div>
+                <div class="emotion">
+                    {% if entry.emotion == 'feliz' %}😊
+                    {% elif entry.emotion == 'animado' %}😃
+                    {% elif entry.emotion == 'calmo' %}😌
+                    {% elif entry.emotion == 'neutro' %}😐
+                    {% elif entry.emotion == 'triste' %}😢
+                    {% elif entry.emotion == 'irritado' %}😠
+                    {% elif entry.emotion == 'cansado' %}😴
+                    {% endif %}
+                    {{ entry.emotion|title }} ({{ (entry.confidence * 100)|int }}% de confiança)
+                </div>
+                <div>{{ entry.message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

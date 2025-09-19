@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Preferências Avançadas - Eron.IA</title>
+    <style>
+        /* CSS base */
+        body {
+            font-family: var(--font-family, 'Segoe UI'), Arial, sans-serif;
+            background-color: var(--background, #f0f2f5);
+            color: var(--text, #111);
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Abas e navegação */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+            background: var(--surface, #fff);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--secondary, #666);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--primary, #1a73e8);
+            border-bottom: 2px solid var(--primary, #1a73e8);
+        }
+        
+        .tab:hover {
+            color: var(--primary, #1a73e8);
+        }
+        
+        /* Seções de preferências */
+        .preference-section {
+            background: var(--surface, #fff);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preference-section h3 {
+            color: var(--primary, #1a73e8);
+            margin: 0 0 20px 0;
+        }
+        
+        /* Campos de formulário */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text, #333);
+            font-weight: 500;
+        }
+        
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border, #dadce0);
+            border-radius: 4px;
+            font-size: 16px;
+            color: var(--text, #333);
+            background: var(--background, #fff);
+        }
+        
+        /* Toggles e checkboxes */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--secondary, #ccc);
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary, #1a73e8);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Cores do tema */
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .color-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--border, #dadce0);
+            cursor: pointer;
+        }
+        
+        /* Botões */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button.primary {
+            background-color: var(--primary, #1a73e8);
+            color: white;
+        }
+        
+        button.secondary {
+            background-color: var(--surface, #f8f9fa);
+            color: var(--primary, #1a73e8);
+            border: 1px solid var(--primary, #1a73e8);
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        /* Mensagens de feedback */
+        .alert {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: var(--success, #188038);
+            color: white;
+        }
+        
+        .alert-error {
+            background-color: var(--error, #d93025);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Preferências Avançadas</h1>
+        
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+        
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('chat')">Chat</button>
+            <button class="tab" onclick="showTab('visual')">Visual</button>
+            <button class="tab" onclick="showTab('notifications')">Notificações</button>
+            <button class="tab" onclick="showTab('privacy')">Privacidade</button>
+            <button class="tab" onclick="showTab('language')">Idioma</button>
+        </div>
+        
+        <form method="post">
+            <!-- Preferências de Chat -->
+            <div id="chat-preferences" class="preference-section">
+                <h3>Preferências de Chat</h3>
+                
+                <div class="form-group">
+                    <label for="message_style">Estilo de Mensagem</label>
+                    <select name="chat.message_style" id="message_style">
+                        <option value="casual" {% if preferences.chat.message_style == 'casual' %}selected{% endif %}>Casual</option>
+                        <option value="formal" {% if preferences.chat.message_style == 'formal' %}selected{% endif %}>Formal</option>
+                        <option value="empathic" {% if preferences.chat.message_style == 'empathic' %}selected{% endif %}>Empático</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="response_length">Tamanho das Respostas</label>
+                    <select name="chat.response_length" id="response_length">
+                        <option value="short" {% if preferences.chat.response_length == 'short' %}selected{% endif %}>Curtas</option>
+                        <option value="medium" {% if preferences.chat.response_length == 'medium' %}selected{% endif %}>Médias</option>
+                        <option value="long" {% if preferences.chat.response_length == 'long' %}selected{% endif %}>Longas</option>
+                    </select>
+                </div>
+                
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="chat.include_emojis" 
+                               {% if preferences.chat.include_emojis %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label>Incluir Emojis</label>
+                </div>
+            </div>
+            
+            <!-- Preferências Visuais -->
+            <div id="visual-preferences" class="preference-section" style="display: none;">
+                <h3>Preferências Visuais</h3>
+                
+                <div class="form-group">
+                    <label for="theme">Tema</label>
+                    <select name="visual.theme" id="theme">
+                        <option value="light" {% if preferences.visual.theme == 'light' %}selected{% endif %}>Claro</option>
+                        <option value="dark" {% if preferences.visual.theme == 'dark' %}selected{% endif %}>Escuro</option>
+                        <option value="system" {% if preferences.visual.theme == 'system' %}selected{% endif %}>Sistema</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="color_scheme">Esquema de Cores</label>
+                    <select name="visual.color_scheme" id="color_scheme">
+                        <option value="blue" {% if preferences.visual.color_scheme == 'blue' %}selected{% endif %}>Azul</option>
+                        <option value="green" {% if preferences.visual.color_scheme == 'green' %}selected{% endif %}>Verde</option>
+                        <option value="purple" {% if preferences.visual.color_scheme == 'purple' %}selected{% endif %}>Roxo</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="layout_density">Densidade do Layout</label>
+                    <select name="visual.layout_density" id="layout_density">
+                        <option value="compact" {% if preferences.visual.layout_density == 'compact' %}selected{% endif %}>Compacto</option>
+                        <option value="comfortable" {% if preferences.visual.layout_density == 'comfortable' %}selected{% endif %}>Confortável</option>
+                        <option value="spacious" {% if preferences.visual.layout_density == 'spacious' %}selected{% endif %}>Espaçoso</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Preferências de Notificações -->
+            <div id="notification-preferences" class="preference-section" style="display: none;">
+                <h3>Preferências de Notificações</h3>
+                
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notifications.enable_notifications" 
+                               {% if preferences.notifications.enable_notifications %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label>Ativar Notificações</label>
+                </div>
+                
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notifications.sound_enabled" 
+                               {% if preferences.notifications.sound_enabled %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label>Som de Notificação</label>
+                </div>
+                
+                <div class="form-group">
+                    <label>Horário Silencioso</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="time" name="notifications.quiet_hours.start" 
+                               value="{{ preferences.notifications.quiet_hours.start }}">
+                        <span>até</span>
+                        <input type="time" name="notifications.quiet_hours.end" 
+                               value="{{ preferences.notifications.quiet_hours.end }}">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preferências de Privacidade -->
+            <div id="privacy-preferences" class="preference-section" style="display: none;">
+                <h3>Preferências de Privacidade</h3>
+                
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="privacy.save_chat_history" 
+                               {% if preferences.privacy.save_chat_history %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label>Salvar Histórico de Chat</label>
+                </div>
+                
+                <div class="form-group">
+                    <label for="history_retention">Retenção de Histórico (dias)</label>
+                    <input type="number" name="privacy.history_retention_days" id="history_retention"
+                           value="{{ preferences.privacy.history_retention_days }}" min="1" max="365">
+                </div>
+                
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="privacy.share_usage_data" 
+                               {% if preferences.privacy.share_usage_data %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label>Compartilhar Dados de Uso</label>
+                </div>
+            </div>
+            
+            <!-- Preferências de Idioma -->
+            <div id="language-preferences" class="preference-section" style="display: none;">
+                <h3>Preferências de Idioma</h3>
+                
+                <div class="form-group">
+                    <label for="interface_language">Idioma da Interface</label>
+                    <select name="language.interface_language" id="interface_language">
+                        <option value="pt-BR" {% if preferences.language.interface_language == 'pt-BR' %}selected{% endif %}>Português (Brasil)</option>
+                        <option value="en-US" {% if preferences.language.interface_language == 'en-US' %}selected{% endif %}>English (US)</option>
+                        <option value="es-ES" {% if preferences.language.interface_language == 'es-ES' %}selected{% endif %}>Español</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date_format">Formato de Data</label>
+                    <select name="language.date_format" id="date_format">
+                        <option value="dd/MM/yyyy" {% if preferences.language.date_format == 'dd/MM/yyyy' %}selected{% endif %}>31/12/2023</option>
+                        <option value="MM/dd/yyyy" {% if preferences.language.date_format == 'MM/dd/yyyy' %}selected{% endif %}>12/31/2023</option>
+                        <option value="yyyy-MM-dd" {% if preferences.language.date_format == 'yyyy-MM-dd' %}selected{% endif %}>2023-12-31</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="time_format">Formato de Hora</label>
+                    <select name="language.time_format" id="time_format">
+                        <option value="24h" {% if preferences.language.time_format == '24h' %}selected{% endif %}>24 horas</option>
+                        <option value="12h" {% if preferences.language.time_format == '12h' %}selected{% endif %}>12 horas (AM/PM)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="secondary" onclick="resetPreferences()">Restaurar Padrões</button>
+                <button type="submit" class="primary">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.preference-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Remover classe active de todas as abas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar seção selecionada
+            document.getElementById(tabName + '-preferences').style.display = 'block';
+            
+            // Ativar aba selecionada
+            event.currentTarget.classList.add('active');
+        }
+        
+        function resetPreferences() {
+            if (confirm('Tem certeza que deseja restaurar todas as preferências para os valores padrão?')) {
+                window.location.href = '{{ url_for("advanced_preferences", reset=1) }}';
+            }
+        }
+        
+        // Aplicar tema inicial
+        function applyTheme() {
+            const theme = document.getElementById('theme').value;
+            document.body.classList.remove('theme-light', 'theme-dark');
+            document.body.classList.add('theme-' + theme);
+        }
+        
+        // Atualizar tema quando alterado
+        document.getElementById('theme').addEventListener('change', applyTheme);
+        
+        // Aplicar tema inicial
+        applyTheme();
+    </script>
+</body>
+</html>
