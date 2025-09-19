@@ -56,8 +56,33 @@ def get_llm_response(user_message, user_profile=None):
         user_id = user_profile.get('user_id') if user_profile else None
         user_preferences = preferences_manager.get_preferences(user_id) if user_id else None
 
+        # Aplicar preferências ao prompt
+        style_instructions = ""
+        if user_preferences:
+            chat_prefs = user_preferences.get('chat', {})
+            
+            # Estilo da mensagem
+            style = chat_prefs.get('message_style', 'casual')
+            length = chat_prefs.get('response_length', 'medium')
+            emojis = chat_prefs.get('include_emojis', False)
+            
+            style_map = {
+                'casual': 'casual e descontraído',
+                'formal': 'formal e profissional',
+                'friendly': 'amigável e acolhedor'
+            }
+            
+            length_map = {
+                'short': 'de forma concisa e direta',
+                'medium': 'com nível moderado de detalhes',
+                'long': 'de forma detalhada e abrangente'
+            }
+            
+            style_instructions = f"\nPor favor, responda {style_map.get(style, '')} e {length_map.get(length, '')}."
+            if emojis:
+                style_instructions += " Sinta-se à vontade para usar emojis apropriados."
+            
         # Obter estado emocional atual do bot
-        user_id = user_profile.get('user_id') if user_profile else None
         bot_emotion_state = emotion_system.get_bot_emotion(user_id) if user_id else None
         
         # Detectar emoção do usuário
@@ -102,6 +127,9 @@ Regras para Conteúdo:
    - Mantenha um tom carinhoso e sedutor"""
         else:
             system_message = "Você é um assistente amigável. Mantenha todas as interações apropriadas para menores de idade, evitando qualquer conteúdo sexual ou sugestivo."
+
+        # Adicionar instruções de estilo ao system_message
+        system_message = system_message + style_instructions
 
         headers = {"Content-Type": "application/json"}
         payload = {
