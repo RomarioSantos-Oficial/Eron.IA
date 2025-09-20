@@ -176,6 +176,11 @@
 </div>
 {% endif %}
 
+<!-- Indicador de Modo Adulto -->
+<div id="adult-mode-indicator" class="adult-mode-indicator" style="display: none;">
+    🔞 MODO ADULTO ATIVO - CONTEÚDO RESTRITO
+</div>
+
 <div class="messages-container" id="messages">
     {% for msg in messages %}
         <div class="message user">
@@ -277,8 +282,45 @@
         }
     });
 
+    // Verificar se está no modo adulto
+    function checkAdultMode() {
+        // Verificar se URL contém rotas adultas ou session ativa
+        const isAdultMode = window.location.href.includes('/adult/') || 
+                          sessionStorage.getItem('adult_mode_active') === 'true' ||
+                          document.body.classList.contains('adult-mode');
+        
+        if (isAdultMode) {
+            applyAdultTheme();
+        }
+    }
+    
+    // Aplicar tema adulto (vermelho e preto)
+    function applyAdultTheme() {
+        // Mostrar indicador
+        document.getElementById('adult-mode-indicator').style.display = 'block';
+        
+        // Aplicar classes adultas
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        
+        if (messagesContainer) messagesContainer.classList.add('adult-chat-messages');
+        if (messageInput) messageInput.classList.add('adult-chat-input');
+        if (sendButton) sendButton.classList.add('adult-chat-send-btn');
+        
+        // Aplicar tema às mensagens existentes
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(msg => {
+            msg.classList.add('adult-chat-message');
+        });
+    }
+
     // Rola quando a página carrega
-    window.onload = scrollToBottom;
+    window.onload = function() {
+        scrollToBottom();
+        checkAdultMode(); // Verificar modo adulto ao carregar
+    };
+    
     var messages = document.getElementById("messages");
     var observer = new MutationObserver(scrollToBottom);
     observer.observe(messages, { childList: true });

@@ -1265,7 +1265,7 @@ def age_verification():
     user_id = session.get('user_id')
     user_status = adult_system.check_age(user_id)
     
-    return render_template('age_verification.html', 
+    return render_template('adult/age_verification.html', 
                          user_status=user_status,
                          user_id=user_id)
 
@@ -1314,7 +1314,7 @@ def adult_settings():
         return redirect(url_for('personalizar'))
     
     adult_prefs = adult_system.get_adult_preferences(user_id)
-    return render_template('adult_settings.html', 
+    return render_template('adult/config.html', 
                          user_status=user_status,
                          adult_prefs=adult_prefs)
 
@@ -1376,7 +1376,7 @@ def adult_config():
         current_config = {}
         recommendations = []
     
-    return render_template('adult_config.html',
+    return render_template('adult/config.html',
                          user_profile=user_profile,
                          current_config=current_config or {},
                          recommendations=recommendations or [])

@@ -73,12 +73,46 @@ def update_adult_session_feedback(user_id: str, message: str, response: str, rat
 def format_adult_response_with_personality(user_id: str, base_response: str) -> str:
     """
     Formatar resposta com base na personalidade ativa
+    INCLUI EMOJI DE PIMENTA PARA INDICAR MODO ADULTO
     """
     try:
         context = get_adult_personality_context(user_id)
         
         if not context.get('advanced_system'):
             return base_response
+            
+        # ADICIONAR EMOJI DE PIMENTA ANTES DA MENSAGEM NO MODO ADULTO
+        adult_indicator = "🌶️ "
+        
+        # Se já tem o emoji, não adicionar novamente
+        if base_response.startswith("🌶️"):
+            return base_response
+            
+        return adult_indicator + base_response
+        
+    except Exception as e:
+        logger.error(f"Erro ao formatar resposta adulta: {e}")
+        return base_response
+
+def apply_adult_format_to_telegram_response(user_id: str, message_text: str) -> str:
+    """
+    Aplicar formatação adulta a qualquer mensagem do Telegram
+    Esta função deve ser chamada antes de enviar qualquer resposta
+    """
+    try:
+        from telegram_bot.handlers.adult_integration import is_advanced_adult_active
+        
+        # Verificar se modo adulto avançado está ativo
+        if is_advanced_adult_active(user_id):
+            # Adicionar emoji de pimenta se não existir
+            if not message_text.startswith("🌶️"):
+                return f"🌶️ {message_text}"
+        
+        return message_text
+        
+    except Exception as e:
+        logger.error(f"Erro ao aplicar formato adulto: {e}")
+        return message_text
             
         personality_type = context.get('personality_type')
         current_mood = context.get('current_mood')
