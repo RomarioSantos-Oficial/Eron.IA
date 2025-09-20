@@ -1,0 +1,345 @@
+:root {
+    --primary-color: #00ff00;     /* Verde brilhante para elementos principais */
+    --primary-dark: #008000;      /* Verde escuro para hover e elementos secundários */
+    --accent-color: #00cc00;      /* Verde médio para destaques */
+    --text-light: #00ff00;        /* Verde brilhante para texto principal */
+    --text-dark: #006400;         /* Verde escuro para texto secundário */
+    --bg-primary: #000000;        /* Preto puro para fundo principal */
+    --bg-secondary: #0a0a0a;      /* Preto levemente mais claro para elementos secundários */
+    --bg-elevated: #1a1a1a;       /* Preto mais claro para elementos elevados */
+    --border-color: #00ff00;      /* Verde brilhante para bordas */
+    --success-color: #00ff00;     /* Verde brilhante para sucesso */
+    --error-color: #ff0000;       /* Vermelho para erros */
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-light);
+    font-family: 'Consolas', 'Courier New', monospace;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* Estilo Matrix-like para toda a interface */
+.matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-primary);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+/* Efeitos de hover para elementos interativos */
+a:hover, button:hover, .nav-link:hover {
+    text-shadow: 0 0 10px var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+/* Estilo cyberpunk para containers */
+.container, .card, .form-container {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+/* Estilo para formulários */
+input, select, textarea {
+    background-color: var(--bg-elevated) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-light) !important;
+    padding: 10px !important;
+    margin-bottom: 15px;
+    border-radius: 3px;
+}
+
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3) !important;
+    border-color: var(--primary-color) !important;
+    outline: none;
+}
+
+/* Barra de navegação */
+.navbar {
+    background-color: var(--bg-elevated) !important;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 2px 15px rgba(0, 255, 0, 0.1);
+}
+
+.navbar-brand, .nav-link {
+    color: var(--text-light) !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.navbar-brand:hover, .nav-link:hover {
+    color: var(--primary-color) !important;
+    text-shadow: 0 0 10px var(--primary-color);
+}
+
+.navbar-toggler {
+    border-color: var(--border-color);
+    background-color: var(--bg-elevated);
+}
+
+/* Cards e Containers */
+.card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Botões */
+.btn {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+}
+
+.btn-primary {
+    background-color: var(--primary-dark);
+    border-color: var(--border-color);
+    color: var(--text-light);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--border-color);
+    color: var(--bg-primary);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+}
+
+/* Campos de formulário */
+.form-control {
+    background-color: var(--bg-elevated) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-light) !important;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Labels */
+label {
+    color: var(--text-light);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+.form-control:focus {
+    background-color: var(--bg-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 255, 0, 0.25);
+}
+
+.chat-container {
+    height: 70vh;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+    position: relative;
+}
+
+.chat-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 255, 0, 0.05) 50%, transparent 50%);
+    background-size: 100% 2px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.2;
+    animation: scanline 2s linear infinite;
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(20px);
+    }
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 5px;
+    position: relative;
+    z-index: 1;
+    font-family: 'Consolas', 'Courier New', monospace;
+    transition: all 0.3s ease;
+}
+
+.user-message {
+    background-color: rgba(0, 128, 0, 0.2);
+    color: var(--text-light);
+    margin-left: 20%;
+    border: 1px solid var(--primary-dark);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+}
+
+.user-message:hover {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    transform: translateX(-2px);
+}
+
+.bot-message {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: var(--text-light);
+    margin-right: 20%;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+}
+
+.bot-message:hover {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    transform: translateX(2px);
+}
+
+.message::before {
+    content: '>';
+    position: absolute;
+    left: -20px;
+    color: var(--primary-color);
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+.preferences-form {
+    background-color: var(--bg-light);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--primary-color);
+}
+
+.avatar-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.avatar-option {
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+}
+
+.avatar-option:hover {
+    border-color: var(--primary-color);
+}
+
+.avatar-option.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+.avatar-option img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.emotions-container {
+    padding: 20px;
+    background-color: var(--bg-light);
+    border: 1px solid var(--primary-color);
+    border-radius: 10px;
+}
+
+.emotion-level {
+    margin-bottom: 15px;
+}
+
+.emotion-bar {
+    height: 20px;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+}
+
+/* Personalização */
+.personalize-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--bg-light);
+    border: 1px solid var(--primary-color);
+    border-radius: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    color: var(--primary-color);
+}
+
+.alert {
+    border: 1px solid var(--primary-color);
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+}
+
+.alert-success {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+.alert-danger {
+    border-color: #ff0000;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}

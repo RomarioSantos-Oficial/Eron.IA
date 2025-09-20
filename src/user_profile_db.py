@@ -8,7 +8,26 @@ class UserProfileDB:
             db_path = os.path.join(base_dir, 'memoria', 'user_profiles.db')
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.create_table()
+        self._ensure_columns_exist()  # Garante que as colunas mais recentes existam
         self.cleanup_expired_tokens()
+
+    def delete_profile(self, user_id):
+        """Apaga completamente um perfil do banco de dados"""
+        try:
+            with self.conn:
+                result = self.conn.execute(
+                    "DELETE FROM profiles WHERE user_id = ?", 
+                    (user_id,)
+                )
+                if result.rowcount > 0:
+                    print(f"[DEBUG] Perfil {user_id} apagado com sucesso")
+                    return True
+                else:
+                    print(f"[DEBUG] Perfil {user_id} não encontrado para apagar")
+                    return False
+        except Exception as e:
+            print(f"[ERROR] Erro ao apagar perfil {user_id}: {e}")
+            return False
 
     def cleanup_expired_tokens(self):
         """Limpa todos os tokens expirados do banco de dados"""
@@ -39,55 +58,153 @@ class UserProfileDB:
                     confirmation_token TEXT,
                     reset_token TEXT,
                     reset_token_expiry TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    bot_personality TEXT,
+                    bot_language TEXT,
+                    preferred_topics TEXT
                 )
             ''')
 
+    def _ensure_columns_exist(self):
+        """Garante que as colunas mais recentes existam na tabela."""
+        columns_to_add = {
+            'bot_personality': 'TEXT',
+            'bot_language': 'TEXT',
+            'preferred_topics': 'TEXT',
+            'birth_date': 'TEXT',  # Data de nascimento real
+            'adult_intensity_level': 'INTEGER DEFAULT 1',
+            'adult_content_preferences': 'TEXT',
+            'adult_interaction_style': 'TEXT DEFAULT "romantic"',
+            'adult_boundaries': 'TEXT'
+        }
+        
+        cursor = self.conn.cursor()
+        cursor.execute("PRAGMA table_info(profiles)")
+        existing_columns = [row[1] for row in cursor.fetchall()]
+        
+        with self.conn:
+            for col, col_type in columns_to_add.items():
+                if col not in existing_columns:
+                    self.conn.execute(f"ALTER TABLE profiles ADD COLUMN {col} {col_type}")
+
     def get_profile(self, user_id):
+        if not user_id:
+            return None
+            
+        self._ensure_columns_exist() # Garante que as colunas existem antes de ler
         cur = self.conn.cursor()
-        cur.execute('SELECT user_name, user_age, user_gender, bot_name, bot_gender, bot_avatar FROM profiles WHERE user_id = ?', (user_id,))
+        cur.execute('''
+            SELECT user_id, username, password_hash, email, user_name, 
+                   user_age, user_gender, bot_name, bot_gender, bot_avatar, 
+                   has_mature_access, bot_personality, bot_language, preferred_topics,
+                   birth_date, adult_intensity_level, adult_content_preferences, 
+                   adult_interaction_style, adult_boundaries
+            FROM profiles WHERE user_id = ?
+        ''', (user_id,))
         row = cur.fetchone()
         if row:
-            return {
-                'user_name': row[0],
-                'user_age': row[1],
-                'user_gender': row[2],
-                'bot_name': row[3],
-                'bot_gender': row[4],
-                'bot_avatar': row[5],
-                'has_mature_access': bool(row[6]) if len(row) > 6 else False
-            }
+            fields = [
+                'user_id', 'username', 'password_hash', 'email', 'user_name',
+                'user_age', 'user_gender', 'bot_name', 'bot_gender', 'bot_avatar',
+                'has_mature_access', 'bot_personality', 'bot_language', 'preferred_topics',
+                'birth_date', 'adult_intensity_level', 'adult_content_preferences', 
+                'adult_interaction_style', 'adult_boundaries'
+            ]
+            profile = {}
+            for i, field in enumerate(fields):
+                if field == 'has_mature_access':
+                    profile[field] = bool(row[i])
+                else:
+                    profile[field] = row[i]
+            return profile
         return None
 
-    def save_profile(self, user_id, user_name, user_age, user_gender, bot_name, bot_gender, bot_avatar, has_mature_access=False, username=None, password_hash=None, email=None):
-        with self.conn:
-            self.conn.execute('''
-                INSERT OR REPLACE INTO profiles (
-                    user_id, username, password_hash, email, user_name, user_age, 
-                    user_gender, bot_name, bot_gender, bot_avatar, has_mature_access
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, username, password_hash, email, user_name, user_age, 
-                  user_gender, bot_name, bot_gender, bot_avatar, has_mature_access))
+    def save_profile(self, **kwargs):
+        """
+        Salva um perfil de usuário. Se o perfil já existe, atualiza os campos fornecidos.
+        Se não existe, cria um novo.
+        """
+        print("Salvando perfil com dados:", kwargs)  # Debug
+        
+        user_id = kwargs.get('user_id')
+        if not user_id:
+            raise ValueError('O campo user_id é obrigatório.')
+
+        self._ensure_columns_exist() # Garante que as colunas existem
+
+        try:
+            with self.conn:
+                # Verifica se o perfil já existe
+                cur = self.conn.cursor()
+                cur.execute("SELECT 1 FROM profiles WHERE user_id = ?", (user_id,))
+                exists = cur.fetchone()
+
+                if exists:
+                    # Atualiza o perfil existente
+                    update_fields = []
+                    update_values = []
+                    for key, value in kwargs.items():
+                        if key != 'user_id':
+                            update_fields.append(f"{key} = ?")
+                            update_values.append(value)
+                    
+                    if not update_fields:
+                        print("Nenhum campo para atualizar.")
+                        return
+
+                    update_values.append(user_id)
+                    query = f"UPDATE profiles SET {', '.join(update_fields)} WHERE user_id = ?"
+                    
+                    print("Executando query de UPDATE:", query, update_values) # Debug
+                    self.conn.execute(query, update_values)
+
+                else:
+                    # Insere um novo perfil
+                    fields = list(kwargs.keys())
+                    placeholders = ', '.join(['?' for _ in fields])
+                    values = [kwargs.get(f) for f in fields]
+                    
+                    query = f"INSERT INTO profiles ({', '.join(fields)}) VALUES ({placeholders})"
+                    
+                    print("Executando query de INSERT:", query, values) # Debug
+                    self.conn.execute(query, values)
+
+                self.conn.commit()
+                print("Perfil salvo com sucesso!")  # Debug
+        except Exception as e:
+            print(f"Erro ao salvar perfil: {e}")  # Debug
+            raise
                   
     def get_profile_by_username(self, username):
+        if not username:
+            return None
+            
+        self._ensure_columns_exist() # Garante que as colunas existem antes de ler
         cur = self.conn.cursor()
-        cur.execute('SELECT * FROM profiles WHERE username = ?', (username,))
+        cur.execute('''
+            SELECT user_id, username, password_hash, email, user_name, 
+                   user_age, user_gender, bot_name, bot_gender, bot_avatar, 
+                   has_mature_access, bot_personality, bot_language, preferred_topics,
+                   birth_date, adult_intensity_level, adult_content_preferences, 
+                   adult_interaction_style, adult_boundaries
+            FROM profiles WHERE username = ?
+        ''', (username,))
         row = cur.fetchone()
         if row:
-            return {
-                'user_id': row[1],
-                'username': row[2],
-                'password_hash': row[3],
-                'email': row[4],
-                'user_name': row[5],
-                'user_age': row[6],
-                'user_gender': row[7],
-                'bot_name': row[8],
-                'bot_gender': row[9],
-                'bot_avatar': row[10],
-                'has_mature_access': bool(row[11])
-            }
+            fields = [
+                'user_id', 'username', 'password_hash', 'email', 'user_name',
+                'user_age', 'user_gender', 'bot_name', 'bot_gender', 'bot_avatar',
+                'has_mature_access', 'bot_personality', 'bot_language', 'preferred_topics',
+                'birth_date', 'adult_intensity_level', 'adult_content_preferences', 
+                'adult_interaction_style', 'adult_boundaries'
+            ]
+            profile = {}
+            for i, field in enumerate(fields):
+                if field == 'has_mature_access':
+                    profile[field] = bool(row[i])
+                else:
+                    profile[field] = row[i]
+            return profile
         return None
         
     def username_exists(self, username):
@@ -177,4 +294,92 @@ class UserProfileDB:
                 return cursor.fetchone() is not None
         except Exception as e:
             print(f"Erro ao atualizar senha: {e}")
+            return False
+
+    def update_profile(self, user_id, **kwargs):
+        """
+        Atualiza campos específicos de um perfil existente.
+        Aceita campos individuais como parâmetros nomeados.
+        """
+        if not user_id:
+            return False
+            
+        # Campos válidos para atualização
+        valid_fields = {
+            'user_name': 'user_name',
+            'user_age': 'user_age', 
+            'user_gender': 'user_gender',
+            'bot_name': 'bot_name',
+            'bot_gender': 'bot_gender',
+            'bot_personality': 'bot_personality',
+            'bot_language': 'bot_language',
+            'preferred_topics': 'preferred_topics',
+            'bot_avatar': 'bot_avatar',
+            'adult_intensity_level': 'adult_intensity_level',
+            'adult_content_preferences': 'adult_content_preferences',
+            'adult_interaction_style': 'adult_interaction_style',
+            'adult_boundaries': 'adult_boundaries'
+        }
+        
+        # Filtrar apenas campos válidos que foram fornecidos
+        update_fields = {}
+        for key, value in kwargs.items():
+            if key in valid_fields and value is not None:
+                update_fields[valid_fields[key]] = value
+        
+        if not update_fields:
+            return False
+            
+        try:
+            # Construir query dinâmica
+            set_clauses = [f"{field} = ?" for field in update_fields.keys()]
+            query = f"UPDATE profiles SET {', '.join(set_clauses)} WHERE user_id = ?"
+            values = list(update_fields.values()) + [user_id]
+            
+            with self.conn:
+                cursor = self.conn.execute(query, values)
+                return cursor.rowcount > 0
+                
+        except Exception as e:
+            print(f"Erro ao atualizar perfil {user_id}: {e}")
+            return False
+
+    def reset_user_profile(self, user_id):
+        """
+        Resetar/apagar completamente o perfil de um usuário
+        Remove todos os dados de personalização
+        """
+        try:
+            with self.conn:
+                # Verificar se usuário existe
+                cursor = self.conn.cursor()
+                cursor.execute('SELECT 1 FROM profiles WHERE user_id = ?', (user_id,))
+                if not cursor.fetchone():
+                    return False
+                
+                # Resetar todos os campos de personalização para valores padrão
+                self.conn.execute('''
+                    UPDATE profiles SET
+                        user_name = NULL,
+                        user_age = NULL,
+                        birth_date = NULL,
+                        user_gender = NULL,
+                        bot_name = 'Eron',
+                        bot_gender = 'neutro',
+                        bot_personality = 'amigável',
+                        bot_language = 'português',
+                        preferred_topics = NULL,
+                        bot_avatar = NULL,
+                        has_mature_access = 0,
+                        adult_intensity_level = 1,
+                        adult_content_preferences = NULL,
+                        adult_interaction_style = 'romantic',
+                        adult_boundaries = NULL
+                    WHERE user_id = ?
+                ''', (user_id,))
+                
+                return True
+                
+        except Exception as e:
+            print(f"Erro ao resetar perfil {user_id}: {e}")
             return False

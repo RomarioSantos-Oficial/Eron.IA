@@ -1,0 +1,181 @@
+/* Matrix Theme */
+.matrix-theme {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background-color: var(--bg-primary);
+    color: var(--text-light);
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Matrix Background Effect */
+.matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 255, 0, 0.03) 50%, transparent 50%);
+    background-size: 100% 4px;
+    z-index: -1;
+    pointer-events: none;
+    animation: matrix-scan 10s linear infinite;
+}
+
+@keyframes matrix-scan {
+    from { background-position: 0 0; }
+    to { background-position: 0 100%; }
+}
+
+/* Container Styling */
+.main-content {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Form Elements */
+.matrix-theme input,
+.matrix-theme select,
+.matrix-theme textarea {
+    background-color: var(--bg-elevated) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-light) !important;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.matrix-theme input:focus,
+.matrix-theme select:focus,
+.matrix-theme textarea:focus {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Buttons */
+.matrix-theme .btn {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.matrix-theme .btn-primary {
+    background-color: var(--primary-dark);
+    border-color: var(--border-color);
+    color: var(--text-light);
+}
+
+.matrix-theme .btn-primary:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-primary);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+}
+
+/* Cards */
+.matrix-theme .card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.matrix-theme .card:hover {
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Alerts */
+.matrix-theme .alert {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.matrix-theme .alert-success {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+.matrix-theme .alert-danger {
+    border-color: #ff0000;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Links */
+.matrix-theme a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.matrix-theme a:hover {
+    color: var(--text-light);
+    text-shadow: 0 0 10px var(--primary-color);
+}
+
+/* Headers */
+.matrix-theme h1, 
+.matrix-theme h2, 
+.matrix-theme h3, 
+.matrix-theme h4, 
+.matrix-theme h5, 
+.matrix-theme h6 {
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+/* Tables */
+.matrix-theme table {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.matrix-theme th,
+.matrix-theme td {
+    border-color: var(--border-color);
+    color: var(--text-light);
+}
+
+/* Custom Scrollbar */
+.matrix-theme ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.matrix-theme ::-webkit-scrollbar-track {
+    background: var(--bg-elevated);
+}
+
+.matrix-theme ::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.matrix-theme ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Loading Effects */
+@keyframes matrix-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 255, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+    }
+}
+
+.matrix-loading {
+    animation: matrix-pulse 1.5s infinite;
+}

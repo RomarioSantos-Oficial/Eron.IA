@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Bem-vindo ao Eron.IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        padding: 100px 0;
+        text-align: center;
+        color: var(--text-light);
+        text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    }
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-family: 'Consolas', 'Courier New', monospace;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-bottom: 20px;
+    }
+    .hero-section .lead {
+        font-size: 1.4rem;
+        margin-bottom: 40px;
+        color: var(--text-normal);
+    }
+    .features-section {
+        padding: 60px 0;
+    }
+    .feature-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(0, 255, 0, 0.15);
+    }
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px var(--primary-color);
+    }
+    .feature-card h3 {
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        font-family: 'Consolas', 'Courier New', monospace;
+    }
+    .cta-section {
+        text-align: center;
+        padding: 60px 0;
+    }
+    .btn-matrix {
+        background-color: transparent;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: all 0.3s ease;
+        margin: 0 10px;
+    }
+    .btn-matrix:hover {
+        background-color: var(--primary-color);
+        color: var(--bg-primary);
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1>Eron.IA</h1>
+        <p class="lead">Sua Companhia Virtual Inteligente e Personalizável</p>
+        <p>Converse, personalize e crie uma conexão única com uma IA que aprende e se adapta a você.</p>
+    </div>
+</div>
+
+<div class="container features-section">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3>Totalmente Personalizável</h3>
+                <p>Mude o nome, gênero, personalidade e até o avatar do seu assistente. Crie a companhia perfeita para você.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Memória e Emoções</h3>
+                <p>Eron.IA lembra de suas conversas e desenvolve um estado emocional que evolui com suas interações, tornando cada papo único.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Privacidade e Controle</h3>
+                <p>Você tem controle total sobre seus dados. Gerencie o histórico de conversas e suas preferências de privacidade com facilidade.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cta-section">
+    <div class="container">
+        <h2>Pronto para começar?</h2>
+        <p>Crie sua conta ou faça login para iniciar sua jornada com Eron.IA.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-matrix">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-matrix">Cadastre-se</a>
+    </div>
+</div>
+{% endblock %}

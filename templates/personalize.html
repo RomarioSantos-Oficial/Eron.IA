@@ -1,61 +1,696 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Personalizar Chat</title>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #111b21; color: #222; margin: 0; }
-        .box { max-width: 400px; margin: 60px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #0002; padding: 32px 24px; }
-        h2 { text-align: center; color: #25d366; margin-bottom: 24px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input[type=text], input[type=number], select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 18px; font-size: 1em; }
-        button { width: 100%; padding: 12px; background: #25d366; color: #fff; border: none; border-radius: 6px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #128c7e; }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <h2>Personalize o Eron</h2>
-        <form method="post" enctype="multipart/form-data">
-            <label for="user_name">Seu nome:</label>
-            <input type="text" id="user_name" name="user_name" placeholder="Seu nome" required value="{{ user_name|default('') }}">
+{% extends "base.html" %}
+{% block title %}Personalizar Bot - Eron.IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .personalize-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        padding: 25px;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    .personalize-card:hover {
+        box-shadow: 0 0 30px rgba(0, 255, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 25px;
+        text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        font-family: 'Consolas', 'Courier New', monospace;
+        position: relative;
+        padding-left: 20px;
+    }
+
+    .section-title::before {
+        content: '>';
+        position: absolute;
+        left: 0;
+        color: var(--primary-color);
+        opacity: 0.7;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .form-control {
+        background-color: var(--bg-elevated) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-light) !important;
+        padding: 12px !important;
+        font-family: 'Consolas', 'Courier New', monospace;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.2) !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, var(--primary-color) 50%),
+                          linear-gradient(135deg, var(--primary-color) 50%, transparent 50%);
+        background-position: calc(100% - 20px) calc(1em + 2px),
+                           calc(100% - 15px) calc(1em + 2px);
+        background-size: 5px 5px,
+                        5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    select[multiple].form-control {
+        height: 150px;
+    }
+
+    select[multiple].form-control option {
+        padding: 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    select[multiple].form-control option:hover {
+        background-color: rgba(0, 255, 0, 0.1);
+    }
+
+    .custom-file {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .custom-file-input {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: calc(1.5em + .75rem + 2px);
+        margin: 0;
+        opacity: 0;
+    }
+
+    .custom-file-label {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 1;
+        height: calc(1.5em + .75rem + 2px);
+        padding: .375rem .75rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: var(--text-light);
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: .25rem;
+    }
+
+    .avatar-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 2px solid var(--border-color);
+        padding: 5px;
+        margin-top: 15px;
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .avatar-preview:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    }
+
+    .save-button {
+        background-color: var(--primary-dark);
+        color: var(--text-light);
+        border: 1px solid var(--border-color);
+        padding: 12px 30px;
+        font-family: 'Consolas', 'Courier New', monospace;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+    }
+
+    .save-button:hover {
+        background-color: var(--primary-color);
+        color: var(--bg-primary);
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    @keyframes glow {
+        0% {
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+        }
+        100% {
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+    }
+
+    .form-control:focus {
+        animation: glow 2s infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="personalize-form">
+            <h2 class="text-center mb-4">Personalizar Assistente</h2>
             
-            <label for="user_age">Sua idade:</label>
-            <input type="number" id="user_age" name="user_age" placeholder="Sua idade" required value="{{ user_age|default('') }}">
-            
-            <label for="user_gender">Seu gênero:</label>
-            <select id="user_gender" name="user_gender" required>
-                <option value="masculino" {% if user_gender=='masculino' %}selected{% endif %}>Masculino</option>
-                <option value="feminino" {% if user_gender=='feminino' %}selected{% endif %}>Feminino</option>
-                <option value="outro" {% if user_gender=='outro' %}selected{% endif %}>Outro/Prefiro não informar</option>
-            </select>
-            
-            <label for="bot_name">Nome do bot:</label>
-            <input type="text" id="bot_name" name="bot_name" placeholder="Como quer chamar o bot?" required value="{{ bot_name|default('') }}">
-            
-            <label for="bot_gender">Gênero do bot:</label>
-            <select id="bot_gender" name="bot_gender" required>
-                <option value="masculino" {% if bot_gender=='masculino' %}selected{% endif %}>Masculino</option>
-                <option value="feminino" {% if bot_gender=='feminino' %}selected{% endif %}>Feminino</option>
-                <option value="outro" {% if bot_gender=='outro' %}selected{% endif %}>Outro/Prefiro não informar</option>
-            </select>
-            
-            <label for="bot_avatar">Avatar do bot (opcional):</label>
-            <input type="file" id="bot_avatar" name="bot_avatar" accept="image/*">
-            
-            <button type="submit">Salvar Alterações</button>
-        </form>
-        
-        <div style="text-align: center; margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <a href="{{ url_for('manage_emotions') }}" style="color: #25d366; text-decoration: none; font-weight: bold;">
-                    Gerenciar Preferências Emocionais
-                </a>
-                <a href="{{ url_for('advanced_preferences') }}" style="color: #25d366; text-decoration: none; font-weight: bold;">
-                    Preferências Avançadas
-                </a>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('personalizar') }}" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Configurações do Bot -->
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Configurações do Bot</h4>
+                        <div class="form-group">
+                            <label for="bot_name">Nome do Bot</label>
+                            <input type="text" class="form-control" id="bot_name" name="bot_name" value="{{ bot_name|default('') }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bot_gender">Gênero do Bot</label>
+                            <select class="form-control" id="bot_gender" name="bot_gender">
+                                <option value="masculino" {% if bot_gender == 'masculino' %}selected{% endif %}>Masculino</option>
+                                <option value="feminino" {% if bot_gender == 'feminino' %}selected{% endif %}>Feminino</option>
+                                <option value="neutro" {% if bot_gender == 'neutro' %}selected{% endif %}>Neutro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bot_personality">Personalidade do Bot</label>
+                            <select class="form-control" id="bot_personality" name="bot_personality">
+                                <option value="amigavel">Amigável</option>
+                                <option value="profissional">Profissional</option>
+                                <option value="divertido">Divertido</option>
+                                <option value="formal">Formal</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bot_language">Estilo de Linguagem</label>
+                            <select class="form-control" id="bot_language" name="bot_language">
+                                <option value="informal">Informal</option>
+                                <option value="formal">Formal</option>
+                                <option value="tecnico">Técnico</option>
+                                <option value="simples">Simples</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Configurações do Usuário -->
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Suas Informações</h4>
+                        <div class="form-group">
+                            <label for="user_name">Seu Nome</label>
+                            <input type="text" class="form-control" id="user_name" name="user_name" value="{{ user_name|default('') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_gender">Seu Gênero</label>
+                            <select class="form-control" id="user_gender" name="user_gender">
+                                <option value="masculino" {% if user_gender == 'masculino' %}selected{% endif %}>Masculino</option>
+                                <option value="feminino" {% if user_gender == 'feminino' %}selected{% endif %}>Feminino</option>
+                                <option value="outro" {% if user_gender == 'outro' %}selected{% endif %}>Outro</option>
+                                <option value="prefiro_nao_dizer" {% if user_gender == 'prefiro_nao_dizer' %}selected{% endif %}>Prefiro não dizer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="birth_date">Data de Nascimento</label>
+                            <input type="date" class="form-control" id="birth_date" name="birth_date" value="{{ birth_date|default('') }}" required max="{{ current_date }}">
+                            <small class="form-text text-muted">
+                                📅 Sua idade real será calculada automaticamente e determinará o acesso às funcionalidades
+                            </small>
+                            <div id="calculated_age" class="mt-2" style="display: none;">
+                                <span class="badge badge-info">Idade calculada: <span id="age_display">--</span> anos</span>
+                                <span id="adult_access_status" class="badge badge-secondary ms-2">Verificando...</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="preferred_topics">Tópicos de Interesse</label>
+                            <select multiple class="form-control" id="preferred_topics" name="preferred_topics">
+                                <option value="tecnologia">Tecnologia</option>
+                                <option value="ciencia">Ciência</option>
+                                <option value="arte">Arte</option>
+                                <option value="literatura">Literatura</option>
+                                <option value="musica">Música</option>
+                                <option value="esportes">Esportes</option>
+                                <option value="viagens">Viagens</option>
+                                <option value="culinaria">Culinária</option>
+                                <option value="saude">Saúde</option>
+                                <option value="filosofia">Filosofia</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurações Adultas (18+) - Controladas por Idade Real -->
+                <div class="personalize-card" id="adult-settings" style="display: none;">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h4 class="section-title mb-0">🔞 Configurações Adultas (18+)</h4>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge badge-warning" id="age-requirement">Requer 18+ anos</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info" id="adult-explanation">
+                        <strong>ℹ️ Sobre as Configurações Adultas:</strong><br>
+                        • <strong>Configurações do Bot</strong> = Parâmetros base de uso (personalidade, linguagem, temas)<br>
+                        • <strong>Configurações Adultas</strong> = Controla palavras sexualmente sugestivas e conteúdo íntimo<br><br>
+                        <small>📋 <strong>Status de Acesso:</strong> 
+                            <span id="adult-access-message">Informe sua data de nascimento para verificar elegibilidade</span>
+                        </small>
+                    </div>
+                    
+                    <div id="adult-content" style="display: none;">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-check-label">
+                                    <input type="checkbox" id="enable_adult_mode" name="enable_adult_mode" class="form-check-input" {% if has_mature_access %}checked{% endif %}>
+                                    <strong>Ativar Modo Adulto</strong>
+                                </label>
+                                <small class="form-text text-muted">Permite conversas de natureza adulta e romântica</small>
+                            </div>
+
+                            <div class="form-group" id="adult-intensity-group" style="display: none;">
+                                <label for="adult_intensity">Nível de Intensidade</label>
+                                <select class="form-control" id="adult_intensity" name="adult_intensity">
+                                    <option value="1" {% if adult_intensity == '1' %}selected{% endif %}>1 - Romântico/Carinhoso</option>
+                                    <option value="2" {% if adult_intensity == '2' %}selected{% endif %}>2 - Flerte Leve</option>
+                                    <option value="3" {% if adult_intensity == '3' %}selected{% endif %}>3 - Sensual Moderado</option>
+                                    <option value="4" {% if adult_intensity == '4' %}selected{% endif %}>4 - Intenso/Provocativo</option>
+                                    <option value="5" {% if adult_intensity == '5' %}selected{% endif %}>5 - Muito Intenso</option>
+                                </select>
+                                <small class="form-text text-muted">Controla quão intensa será a personalidade adulta</small>
+                            </div>
+
+                            <div class="form-group" id="adult-style-group" style="display: none;">
+                                <label for="adult_interaction_style">Estilo de Interação</label>
+                                <select class="form-control" id="adult_interaction_style" name="adult_interaction_style">
+                                    <option value="romantic" {% if adult_interaction_style == 'romantic' %}selected{% endif %}>Romântico</option>
+                                    <option value="playful" {% if adult_interaction_style == 'playful' %}selected{% endif %}>Brincalhão</option>
+                                    <option value="seductive" {% if adult_interaction_style == 'seductive' %}selected{% endif %}>Sedutor</option>
+                                    <option value="intimate" {% if adult_interaction_style == 'intimate' %}selected{% endif %}>Íntimo</option>
+                                    <option value="passionate" {% if adult_interaction_style == 'passionate' %}selected{% endif %}>Apaixonado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group" id="adult-preferences-group" style="display: none;">
+                                <label for="adult_content_preferences">Preferências de Conteúdo</label>
+                                <select multiple class="form-control" id="adult_content_preferences" name="adult_content_preferences">
+                                    <option value="romance">Romance</option>
+                                    <option value="flirting">Flerte</option>
+                                    <option value="seduction">Sedução</option>
+                                    <option value="intimacy">Intimidade</option>
+                                    <option value="fantasy">Fantasias</option>
+                                    <option value="roleplay">Interpretação de Papéis</option>
+                                    <option value="poetry">Poesia Romântica</option>
+                                    <option value="stories">Contos Eróticos</option>
+                                </select>
+                                <small class="form-text text-muted">Selecione os tipos de conteúdo adulto de seu interesse</small>
+                            </div>
+
+                            <div class="form-group" id="adult-boundaries-group" style="display: none;">
+                                <label for="adult_boundaries">Limites Pessoais</label>
+                                <select multiple class="form-control" id="adult_boundaries" name="adult_boundaries">
+                                    <option value="no_violence">Sem Violência</option>
+                                    <option value="no_degradation">Sem Degradação</option>
+                                    <option value="no_extreme">Sem Conteúdo Extremo</option>
+                                    <option value="consent_focused">Foco no Consentimento</option>
+                                    <option value="emotional_connection">Conexão Emocional</option>
+                                    <option value="respectful_tone">Tom Respeitoso</option>
+                                </select>
+                                <small class="form-text text-muted">Defina seus limites para manter o conteúdo confortável</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar Section -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="personalize-card">
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <h4 class="section-title">Avatar do Bot</h4>
+                    <label>Escolha o Avatar do Bot</label>
+                    <input type="file" id="bot_avatar" name="bot_avatar" accept="image/*" class="form-control-file">
+                    {% if bot_avatar %}
+                    <div class="mt-2">
+                        <img src="{{ url_for('static', filename='bot_avatars/' + bot_avatar) }}" alt="Avatar atual" style="width: 100px; height: 100px; border-radius: 50%;">
+                        <p>Avatar atual</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn save-button">Salvar Personalização</button>
+                </div>
+            </form>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Verificar idade e mostrar/esconder configurações adultas
+    function toggleAdultSettings() {
+        const userAge = document.getElementById('user_age').value;
+        const adultSettings = document.getElementById('adult-settings');
+        const enableAdultMode = document.getElementById('enable_adult_mode');
+        
+        if (userAge && parseInt(userAge) >= 18) {
+            adultSettings.style.display = 'block';
+            // Se já tiver acesso maduro, manter as configurações visíveis
+            if (enableAdultMode.checked) {
+                toggleAdultModeSettings(true);
+            }
+        } else {
+            adultSettings.style.display = 'none';
+            enableAdultMode.checked = false;
+            toggleAdultModeSettings(false);
+        }
+    }
+
+    // Mostrar/esconder configurações específicas do modo adulto
+    function toggleAdultModeSettings(show) {
+        const groups = [
+            'adult-intensity-group',
+            'adult-style-group', 
+            'adult-preferences-group',
+            'adult-boundaries-group'
+        ];
+        
+        groups.forEach(groupId => {
+            const group = document.getElementById(groupId);
+            if (group) {
+                group.style.display = show ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar idade inicial
+        toggleAdultSettings();
+        
+        // Monitorar mudanças na idade
+        document.getElementById('user_age').addEventListener('input', toggleAdultSettings);
+        
+        // Monitorar checkbox do modo adulto
+        document.getElementById('enable_adult_mode').addEventListener('change', function() {
+            toggleAdultModeSettings(this.checked);
+        });
+        
+        // Pré-selecionar valores salvos para select múltiplo
+        const preferredTopics = {{ preferred_topics|default('[]')|tojson }};
+        const adultPreferences = {{ adult_content_preferences|default('[]')|tojson }};
+        const adultBoundaries = {{ adult_boundaries|default('[]')|tojson }};
+        
+        // Selecionar tópicos preferidos
+        if (preferredTopics.length > 0) {
+            const topicsSelect = document.getElementById('preferred_topics');
+            for (let option of topicsSelect.options) {
+                if (preferredTopics.includes(option.value)) {
+                    option.selected = true;
+                }
+            }
+        }
+        
+        // Selecionar preferências adultas
+        if (adultPreferences.length > 0) {
+            const prefsSelect = document.getElementById('adult_content_preferences');
+            for (let option of prefsSelect.options) {
+                if (adultPreferences.includes(option.value)) {
+                    option.selected = true;
+                }
+            }
+        }
+        
+        // Selecionar limites adultos
+        if (adultBoundaries.length > 0) {
+            const boundariesSelect = document.getElementById('adult_boundaries');
+            for (let option of boundariesSelect.options) {
+                if (adultBoundaries.includes(option.value)) {
+                    option.selected = true;
+                }
+            }
+        }
+    });
+
+    // Adiciona classe personalizada para inputs de arquivo
+    document.querySelector('#bot_avatar').classList.add('custom-file-input');
+    
+    // Atualiza o label do input de arquivo com o nome do arquivo selecionado
+    // Sistema de Verificação de Idade Precisa
+    const birthDateInput = document.getElementById('birth_date');
+    const calculatedAgeDiv = document.getElementById('calculated_age');
+    const ageDisplay = document.getElementById('age_display');
+    const adultAccessStatus = document.getElementById('adult_access_status');
+    const adultSettings = document.getElementById('adult-settings');
+    const adultContent = document.getElementById('adult-content');
+    const adultAccessMessage = document.getElementById('adult-access-message');
+    const ageRequirement = document.getElementById('age-requirement');
+    
+    // Definir data máxima (hoje)
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    birthDateInput.max = todayString;
+    
+    // Função para calcular idade precisa
+    function calculateAge(birthDate) {
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        
+        return age;
+    }
+    
+    // Função para atualizar status de acesso adulto
+    function updateAdultAccess(age) {
+        const isAdult = age >= 18;
+        
+        // Atualizar displays
+        ageDisplay.textContent = age;
+        calculatedAgeDiv.style.display = age > 0 ? 'block' : 'none';
+        
+        if (isAdult) {
+            adultAccessStatus.textContent = '✅ Acesso Liberado';
+            adultAccessStatus.className = 'badge badge-success ms-2';
+            adultAccessMessage.innerHTML = '<span class="text-success">✅ Você tem acesso às configurações adultas</span>';
+            ageRequirement.textContent = `${age} anos - Acesso OK`;
+            ageRequirement.className = 'badge badge-success';
+            
+            // Mostrar configurações adultas
+            adultSettings.style.display = 'block';
+            adultContent.style.display = 'block';
+            
+            // Carregar conteúdo das configurações adultas
+            loadAdultSettings();
+            
+        } else if (age > 0) {
+            adultAccessStatus.textContent = '❌ Acesso Negado';
+            adultAccessStatus.className = 'badge badge-danger ms-2';
+            adultAccessMessage.innerHTML = '<span class="text-danger">❌ Necessário ter 18+ anos para acessar configurações adultas</span>';
+            ageRequirement.textContent = `${age} anos - Menor de idade`;
+            ageRequirement.className = 'badge badge-danger';
+            
+            // Ocultar configurações adultas
+            adultSettings.style.display = 'none';
+            adultContent.style.display = 'none';
+            
+        } else {
+            adultAccessStatus.textContent = '⏳ Aguardando';
+            adultAccessStatus.className = 'badge badge-warning ms-2';
+            adultAccessMessage.textContent = 'Informe sua data de nascimento para verificar elegibilidade';
+            ageRequirement.textContent = 'Requer 18+ anos';
+            ageRequirement.className = 'badge badge-warning';
+            
+            // Ocultar configurações adultas
+            adultSettings.style.display = 'block'; // Mostrar o card mas sem conteúdo
+            adultContent.style.display = 'none';
+        }
+    }
+    
+    // Função para carregar configurações adultas
+    function loadAdultSettings() {
+        const hasMatureAccess = {{ 'true' if has_mature_access else 'false' }};
+        const adultIntensity = '{{ adult_intensity|default("1") }}';
+        const adultInteractionStyle = '{{ adult_interaction_style|default("romantic") }}';
+        
+        adultContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-check-label">
+                            <input type="checkbox" id="enable_adult_mode" name="enable_adult_mode" class="form-check-input" ${hasMatureAccess ? 'checked' : ''}>
+                            <strong>🔞 Ativar Modo Adulto</strong>
+                        </label>
+                        <small class="form-text text-muted">Permite palavras sexualmente sugestivas e conteúdo íntimo</small>
+                    </div>
+
+                    <div class="form-group" id="adult-intensity-group" style="display: ${hasMatureAccess ? 'block' : 'none'};">
+                        <label for="adult_intensity">🔥 Nível de Intensidade</label>
+                        <select class="form-control" id="adult_intensity" name="adult_intensity">
+                            <option value="1" ${adultIntensity === '1' ? 'selected' : ''}>1 - Romântico/Carinhoso</option>
+                            <option value="2" ${adultIntensity === '2' ? 'selected' : ''}>2 - Flerte Leve</option>
+                            <option value="3" ${adultIntensity === '3' ? 'selected' : ''}>3 - Sensual Moderado</option>
+                            <option value="4" ${adultIntensity === '4' ? 'selected' : ''}>4 - Intenso/Provocativo</option>
+                            <option value="5" ${adultIntensity === '5' ? 'selected' : ''}>5 - Muito Intenso</option>
+                        </select>
+                        <small class="form-text text-muted">Controla o nível de linguagem sexualmente sugestiva</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="adult_interaction_style">💫 Estilo de Interação</label>
+                        <select class="form-control" id="adult_interaction_style" name="adult_interaction_style">
+                            <option value="romantic" ${adultInteractionStyle === 'romantic' ? 'selected' : ''}>💕 Romântico</option>
+                            <option value="playful" ${adultInteractionStyle === 'playful' ? 'selected' : ''}>😄 Brincalhão</option>
+                            <option value="seductive" ${adultInteractionStyle === 'seductive' ? 'selected' : ''}>😏 Sedutor</option>
+                            <option value="intimate" ${adultInteractionStyle === 'intimate' ? 'selected' : ''}>💖 Íntimo</option>
+                            <option value="passionate" ${adultInteractionStyle === 'passionate' ? 'selected' : ''}>🔥 Apaixonado</option>
+                        </select>
+                        <small class="form-text text-muted">Define como expressar conteúdo adulto</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <a href="{{ url_for('adult_settings') }}" class="btn btn-danger btn-sm" target="_blank">
+                            ⚙️ Configurações Avançadas
+                        </a>
+                        <small class="form-text text-muted">Acesse configurações detalhadas de conteúdo adulto</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Configurar eventos após carregar conteúdo
+        setupAdultEventListeners();
+    }
+    
+    // Configurar event listeners para configurações adultas
+    function setupAdultEventListeners() {
+        const enableAdultMode = document.getElementById('enable_adult_mode');
+        const adultIntensityGroup = document.getElementById('adult-intensity-group');
+        
+        if (enableAdultMode && adultIntensityGroup) {
+            enableAdultMode.addEventListener('change', function() {
+                adultIntensityGroup.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+    }
+    
+    // Event listener para mudança de data de nascimento
+    birthDateInput.addEventListener('change', function() {
+        if (this.value) {
+            const age = calculateAge(this.value);
+            updateAdultAccess(age);
+        } else {
+            updateAdultAccess(0);
+        }
+    });
+    
+    // Verificar idade inicial se já há data preenchida
+    document.addEventListener('DOMContentLoaded', function() {
+        if (birthDateInput.value) {
+            const age = calculateAge(birthDateInput.value);
+            updateAdultAccess(age);
+        } else {
+            updateAdultAccess(0);
+        }
+    });
+    
+    // Mostrar sempre o card de configurações adultas (para explicação)
+    adultSettings.style.display = 'block';
+
+    document.querySelector('#bot_avatar').addEventListener('change', function(e) {
+        var fileName = '';
+        if(this.files && this.files.length > 0) {
+            fileName = this.files[0].name;
+        }
+        var nextSibling = this.nextElementSibling;
+        if(nextSibling) {
+            nextSibling.innerHTML = fileName;
+        }
+    });
+    
+    // Adiciona efeitos de hover aos cards
+    document.querySelectorAll('.personalize-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Efeito de digitação para os títulos das seções
+    document.querySelectorAll('.section-title').forEach(title => {
+        const text = title.textContent;
+        title.textContent = '';
+        let index = 0;
+        
+        function typeText() {
+            if (index < text.length) {
+                title.textContent += text.charAt(index);
+                index++;
+                setTimeout(typeText, 50);
+            }
+        }
+        
+        // Inicia a animação quando o título está visível
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    typeText();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+        
+        observer.observe(title);
+    });
+</script>
+{% endblock %}

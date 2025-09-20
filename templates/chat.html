@@ -1,162 +1,215 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Eron - Chat</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #111;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
-            height: 90vh;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .chat-header {
-            background-color: #007bff;
-            color: #fff;
-            padding: 16px;
-            text-align: center;
-            font-size: 1.25em;
-            font-weight: bold;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
-        .messages-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .message {
-            display: flex;
-            flex-direction: column;
-            max-width: 80%;
-        }
-        .message.user {
-            align-self: flex-end;
-            align-items: flex-end;
-        }
-        .message.eron {
-            align-self: flex-start;
-            align-items: flex-start;
-        }
-        .message-bubble {
-            padding: 12px 18px;
-            border-radius: 20px;
-            word-wrap: break-word;
-            line-height: 1.5;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .user .message-bubble {
-            background-color: #dcf8c6;
-            color: #111;
-            border-bottom-right-radius: 4px;
-        }
-        .eron .message-bubble {
-            background-color: #e5e5ea;
-            color: #111;
-            border-bottom-left-radius: 4px;
-        }
-        .message-label {
-            font-size: 0.8em;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-        .chat-input {
-            padding: 15px;
-            background-color: #f0f2f5;
-            border-top: 1px solid #ddd;
-            display: flex;
-            gap: 10px;
-        }
-        .chat-input input {
-            flex: 1;
-            border: 1px solid #ccc;
-            padding: 12px 16px;
-            border-radius: 24px;
-            font-size: 1em;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .chat-input input:focus {
-            border-color: #007bff;
-        }
-        .chat-input button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 24px;
-            padding: 12px 24px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .chat-input button:hover {
-            background-color: #0056b3;
-        }
+{% extends "base.html" %}
+{% block title %}Chat - Eron.IA{% endblock %}
 
-        body {
-            background: #f0f2f5;
+{% block extra_css %}
+<style>
+    .messages-container {
+        height: 70vh;
+        overflow-y: auto;
+        padding: 20px;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .messages-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(rgba(0, 255, 0, 0.05) 50%, transparent 50%);
+        background-size: 100% 4px;
+        pointer-events: none;
+        animation: matrix-scan 10s linear infinite;
+        opacity: 0.1;
+    }
+
+    .message {
+        margin-bottom: 15px;
+        max-width: 80%;
+    }
+
+    .message.user {
+        margin-left: auto;
+    }
+
+    .message.eron {
+        margin-right: auto;
+    }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 0.9em;
+        color: var(--primary-color);
+    }
+
+    .message-bubble {
+        padding: 12px 18px;
+        border-radius: 5px;
+        position: relative;
+        font-family: 'Consolas', 'Courier New', monospace;
+        line-height: 1.5;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .user .message-bubble {
+        background-color: rgba(0, 128, 0, 0.2);
+        border: 1px solid var(--primary-dark);
+        color: var(--text-light);
+        margin-left: 20px;
+    }
+
+    .eron .message-bubble {
+        background-color: rgba(0, 0, 0, 0.6);
+        border: 1px solid var(--border-color);
+        color: var(--text-light);
+        margin-right: 20px;
+    }
+
+    .message-bubble::before {
+        content: '>';
+        position: absolute;
+        left: -15px;
+        color: var(--primary-color);
+        opacity: 0.7;
+    }
+
+    .chat-input-container {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+    }
+
+    .chat-input {
+        flex: 1;
+        background-color: var(--bg-elevated) !important;
+        color: var(--text-light) !important;
+        border: 1px solid var(--border-color) !important;
+        padding: 12px !important;
+        font-family: 'Consolas', 'Courier New', monospace;
+        transition: all 0.3s ease;
+    }
+
+    .chat-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.2) !important;
+    }
+
+    .send-button {
+        background-color: var(--primary-dark);
+        color: var(--text-light);
+        border: 1px solid var(--border-color);
+        padding: 12px 24px;
+        font-family: 'Consolas', 'Courier New', monospace;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .send-button:hover {
+        background-color: var(--primary-color);
+        color: var(--bg-primary);
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    }
+
+    .bot-status {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9em;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+    }
+
+    .emotion-indicator {
+        font-size: 1.5em;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div>Eron - Seu Assistente de Apoio</div>
-            {% if bot_emotion %}
-            <div style="font-size: 0.8em; margin-top: 5px;">
-                {% if bot_emotion.emotion == 'feliz' %}😊
-                {% elif bot_emotion.emotion == 'animado' %}😃
-                {% elif bot_emotion.emotion == 'calmo' %}😌
-                {% elif bot_emotion.emotion == 'neutro' %}😐
-                {% elif bot_emotion.emotion == 'triste' %}😢
-                {% elif bot_emotion.emotion == 'irritado' %}😠
-                {% elif bot_emotion.emotion == 'cansado' %}😴
-                {% endif %}
-                {{ bot_emotion.emotion|title }}
-            </div>
-            {% endif %}
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes matrix-scan {
+        from { background-position: 0 0; }
+        to { background-position: 0 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if bot_emotion %}
+<div class="bot-status">
+    <span class="emotion-indicator">
+        {% if bot_emotion.emotion == 'feliz' %}😊
+        {% elif bot_emotion.emotion == 'animado' %}😃
+        {% elif bot_emotion.emotion == 'calmo' %}😌
+        {% elif bot_emotion.emotion == 'neutro' %}😐
+        {% elif bot_emotion.emotion == 'triste' %}😢
+        {% elif bot_emotion.emotion == 'irritado' %}😠
+        {% elif bot_emotion.emotion == 'cansado' %}😴
+        {% endif %}
+    </span>
+    <span>{{ bot_emotion.emotion|title }}</span>
+</div>
+{% endif %}
+
+<div class="messages-container" id="messages">
+    {% for msg in messages %}
+        <div class="message user">
+            <div class="message-header">{{ user_name or 'Você' }}</div>
+            <div class="message-bubble">{{ msg[1] }}</div>
         </div>
-        <div id="messages" class="messages-container">
-            {% for msg in messages %}
-                <div class="message user">
-                    <div class="message-label">{{ user_name or 'Você' }}</div>
-                    <div class="message-bubble">{{ msg[1] }}</div>
-                </div>
-                <div class="message eron">
-                    <div class="message-label">{{ bot_name or 'Eron' }}</div>
-                    <div class="message-bubble">{{ msg[2] }}</div>
-                </div>
-            {% endfor %}
+        <div class="message eron">
+            <div class="message-header">{{ bot_name or 'Eron' }}</div>
+            <div class="message-bubble">{{ msg[2] }}</div>
         </div>
-        <form method="post" class="chat-input">
-            <input type="text" name="message" placeholder="Digite sua mensagem..." autocomplete="off" required>
-            <button type="submit">Enviar</button>
-        </form>
-    </div>
-    <script>
-        // Script para rolar o chat para o final
+    {% endfor %}
+</div>
+
+<form method="post" class="chat-input-container">
+    <input type="text" name="message" class="chat-input" placeholder="Digite sua mensagem..." autocomplete="off" required>
+    <button type="submit" class="send-button">Enviar</button>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Rola o chat para o final automaticamente
+    function scrollToBottom() {
         var messagesDiv = document.getElementById("messages");
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    </script>
-</body>
-</html>
+    }
+
+    // Rola quando a página carrega
+    window.onload = scrollToBottom;
+
+    // Rola quando novas mensagens são adicionadas
+    var messages = document.getElementById("messages");
+    var observer = new MutationObserver(scrollToBottom);
+    observer.observe(messages, { childList: true });
+</script>
+{% endblock %}
