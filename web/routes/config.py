@@ -24,7 +24,7 @@ def preferences():
     
     if request.method == 'POST':
         try:
-            from src.preferences import PreferencesManager
+            from core.preferences import PreferencesManager
             preferences_manager = PreferencesManager()
             
             # Coletar dados do formulário
@@ -56,7 +56,7 @@ def preferences():
     
     # GET - carregar preferências atuais
     try:
-        from src.preferences import PreferencesManager
+        from core.preferences import PreferencesManager
         preferences_manager = PreferencesManager()
         current_preferences = preferences_manager.get_all_preferences(user_id)
     except:
@@ -72,7 +72,7 @@ def emotions():
     
     if request.method == 'POST':
         try:
-            from src.emotion_system import EmotionSystem
+            from core.emotion_system import EmotionSystem
             emotion_system = EmotionSystem()
             
             # Configurações de emoção
@@ -98,7 +98,7 @@ def emotions():
     
     # GET - carregar configurações atuais
     try:
-        from src.emotion_system import EmotionSystem
+        from core.emotion_system import EmotionSystem
         emotion_system = EmotionSystem()
         emotion_data = {
             'settings': emotion_system.get_user_settings(user_id),
@@ -118,7 +118,7 @@ def personalize():
     
     if request.method == 'POST':
         try:
-            from src.user_profile_db import UserProfileDB
+            from core.user_profile_db import UserProfileDB
             profile_db = UserProfileDB()
             
             # Dados de personalização
@@ -148,7 +148,7 @@ def personalize():
     
     # GET - carregar dados atuais
     try:
-        from src.user_profile_db import UserProfileDB
+        from core.user_profile_db import UserProfileDB
         profile_db = UserProfileDB()
         current_profile = profile_db.get_profile(user_id)
     except:

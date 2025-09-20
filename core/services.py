@@ -149,7 +149,7 @@ class SecurityService:
     def __init__(self, key_file: Optional[str] = None):
         if key_file is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            key_file = os.path.join(base_dir, 'memoria', 'security.key')
+            key_file = os.path.join(base_dir, 'database', 'security.key')
         
         self.key_file = key_file
         self._cipher = None

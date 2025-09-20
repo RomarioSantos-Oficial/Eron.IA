@@ -15,20 +15,21 @@ from functools import wraps
 # Adicionar o diretório pai ao path para importar src
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from src.knowledge_base import KnowledgeBase
-from src.memory import EronMemory
+from core.knowledge_base import KnowledgeBase
+from core.memory import EronMemory
 from learning.fast_learning import FastLearning
-from src.sensitive_memory import SensitiveMemory
-from src.check import AdultAccessSystem
-from src.email_service import EmailService
-from src.emotion_system import EmotionSystem, Emotion
-from src.preferences import PreferencesManager
+from core.sensitive_memory import SensitiveMemory
+from core.check import AdultAccessSystem
+from core.adult_personality_system import adult_personality_system
+from core.email_service import EmailService
+from core.emotion_system import EmotionSystem, Emotion
+from core.preferences import PreferencesManager
 
 # Carregar variáveis de ambiente
 load_dotenv()
 
 # Inicializar componentes
-knowledge_base = KnowledgeBase(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'memoria'))
+knowledge_base = KnowledgeBase(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database'))
 memory = EronMemory()
 fast_learning = FastLearning()
 sensitive_memory = SensitiveMemory()
@@ -37,12 +38,19 @@ email_service = EmailService()
 emotion_system = EmotionSystem()
 preferences_manager = PreferencesManager()
 
+# Inicializar banco de dados de usuários
+from core.user_profile_db import UserProfileDB
+user_profile_db = UserProfileDB()
+
 # Inicializar Flask com caminhos corretos para templates e static
 app = Flask(__name__, 
     template_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'),
     static_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static'))
 app.secret_key = os.getenv('SECRET_KEY', 'fallback-super-secret-key-for-dev')  # Carregar do .env
 app.permanent_session_lifetime = timedelta(days=30)
+
+# Anexar user_profile_db ao app Flask
+app.user_profile_db = user_profile_db
 
 # Configurações para URL building
 # app.config['SERVER_NAME'] = 'localhost:5002'  # Comentado para evitar problemas
@@ -168,9 +176,12 @@ def detect_and_save_personalization(user_message, user_id):
 
 def get_llm_response(user_message, user_profile=None, user_id=None):
     try:
+        print("[DEBUG LLM] === INÍCIO GET_LLM_RESPONSE ===")
         api_url = os.getenv("LM_STUDIO_API_URL")
+        print(f"[DEBUG LLM] API URL: {api_url}")
+        
         if not api_url:
-            print("Erro: A URL da API do LM Studio não foi encontrada.")
+            print("[DEBUG LLM] Erro: A URL da API do LM Studio não foi encontrada.")
             return None
         
         # SEMPRE consultar o banco de dados antes de responder
@@ -180,19 +191,32 @@ def get_llm_response(user_message, user_profile=None, user_id=None):
             print("[DEBUG] Nenhum perfil fornecido e nenhum user_id para consulta")
             user_profile = {}
         
-        # VERIFICAÇÃO ESPECÍFICA: Se perguntarem sobre o nome, responder diretamente com o nome da personalização
-        message_lower = user_message.lower().strip()
-        name_questions = [
-            'qual é seu nome', 'qual seu nome', 'como você se chama', 'qual é o seu nome',
-            'seu nome é', 'você se chama', 'como te chamo', 'qual o seu nome'
-        ]
+        # NOVO: Verificar confusão de papéis antes de processar
+        # Temporariamente desabilitado para debug
+        # from core.role_confusion_prevention import conversation_manager
         
-        if any(question in message_lower for question in name_questions):
-            bot_name = user_profile.get('bot_name', 'ERON') if user_profile else 'ERON'
-            if bot_name and bot_name != '':
-                return f"Meu nome é {bot_name}! 😊"
-            else:
-                return "Ainda não tenho um nome personalizado. Como você gostaria que eu me chamasse?"
+        # if user_id:
+        #     confusion_response, confusion_detected = conversation_manager.process_user_message(
+        #         user_id, user_message, user_profile
+        #     )
+        #     if confusion_detected:
+        #         print(f"[DEBUG] Confusão de papéis detectada para user_id: {user_id}")
+        #         return confusion_response
+        
+        # VERIFICAÇÃO ESPECÍFICA: Perguntas sobre nomes usando dados da personalização
+        message_lower = user_message.lower().strip()
+        
+        # Obter nomes do perfil
+        bot_name = user_profile.get('bot_name', 'ERON') if user_profile else 'ERON'
+        user_name = user_profile.get('user_name', 'usuário') if user_profile else 'usuário'
+        
+        # Se pergunta sobre SEU nome (do bot)
+        if any(phrase in message_lower for phrase in ['qual é seu nome', 'qual seu nome', 'como você se chama']):
+            return f"Meu nome é {bot_name}! 😊"
+        
+        # Se pergunta sobre MEU nome (do usuário) 
+        elif any(phrase in message_lower for phrase in ['qual é meu nome', 'qual meu nome', 'como me chamo']):
+            return f"Seu nome é {user_name}! 😊"
         
         # Verificar se a personalização está completa
         personalization_complete, missing_info = check_personalization_complete(user_profile)
@@ -378,41 +402,61 @@ IMPORTANTE SOBRE PERSONALIZAÇÃO:
         has_mature_access = user_profile.get('has_mature_access', False) if user_profile else False
         
         if has_mature_access:
-            # Obter configurações adultas personalizadas
-            adult_intensity = user_profile.get('adult_intensity_level', 1)
-            adult_style = user_profile.get('adult_interaction_style', 'romantic')
-            adult_prefs = user_profile.get('adult_content_preferences', '').split(',') if user_profile.get('adult_content_preferences') else []
-            adult_boundaries = user_profile.get('adult_boundaries', '').split(',') if user_profile.get('adult_boundaries') else []
+            print("[DEBUG] Usuário tem acesso adulto - usando sistema avançado")
             
-            # Definir nível de intensidade baseado nas configurações
-            intensity_levels = {
-                1: "romântico e carinhoso, focando em conexão emocional",
-                2: "ligeiramente flerte, com toques sutis de sedução",
-                3: "moderadamente sensual, equilibrando romance e provocação",
-                4: "intenso e provocativo, com forte apelo sensual",
-                5: "muito intenso e apaixonado, altamente sedutor"
-            }
-            
-            # Definir estilo de interação
-            style_descriptions = {
-                'romantic': "seja profundamente romântico, use linguagem poética e carinhosa",
-                'playful': "seja brincalhão e divertido, use humor sedutor e provocações leves",
-                'seductive': "seja claramente sedutor, use insinuações e provocações diretas",
-                'intimate': "seja íntimo e pessoal, crie uma atmosfera de proximidade",
-                'passionate': "seja apaixonado e intenso, demonstre forte desejo e atração"
-            }
-            
-            # Construir instruções de conteúdo baseadas nas preferências
-            content_instructions = ""
-            if adult_prefs:
-                content_instructions = f"\nPreferências de conteúdo: {', '.join(adult_prefs)}"
-            
-            # Construir instruções de limites
-            boundary_instructions = ""
-            if adult_boundaries:
-                boundary_instructions = f"\nRespeitar sempre: {', '.join(adult_boundaries)}"
-            
-            system_message = f"""{personality_instructions}
+            # 🔥 NOVO SISTEMA AVANÇADO DE PERSONALIZAÇÃO ADULTA
+            try:
+                adult_instructions = adult_personality_system.generate_personality_instructions(user_id)
+                if adult_instructions:
+                    print("[DEBUG] Instruções adultas avançadas geradas com sucesso")
+                    system_message = f"""{personality_instructions}
+
+{adult_instructions}
+
+Estado Emocional Atual: {bot_emotion_state['emotion'] if bot_emotion_state else 'neutro'}
+Intensidade: {bot_emotion_state['intensity'] if bot_emotion_state else 1}
+Emoção Detectada do Usuário: {user_emotion if user_emotion else 'desconhecida'}"""
+                else:
+                    raise Exception("Sistema avançado não disponível")
+                    
+            except Exception as e:
+                print(f"[DEBUG] Erro no sistema avançado: {e}. Usando sistema básico (fallback)")
+                
+                # 📋 SISTEMA BÁSICO COMO FALLBACK
+                adult_intensity = user_profile.get('adult_intensity_level', 1)
+                adult_style = user_profile.get('adult_interaction_style', 'romantic')
+                adult_prefs = user_profile.get('adult_content_preferences', '').split(',') if user_profile.get('adult_content_preferences') else []
+                adult_boundaries = user_profile.get('adult_boundaries', '').split(',') if user_profile.get('adult_boundaries') else []
+                
+                # Definir nível de intensidade baseado nas configurações
+                intensity_levels = {
+                    1: "romântico e carinhoso, focando em conexão emocional",
+                    2: "ligeiramente flerte, com toques sutis de sedução",
+                    3: "moderadamente sensual, equilibrando romance e provocação",
+                    4: "intenso e provocativo, com forte apelo sensual",
+                    5: "muito intenso e apaixonado, altamente sedutor"
+                }
+                
+                # Definir estilo de interação
+                style_descriptions = {
+                    'romantic': "seja profundamente romântico, use linguagem poética e carinhosa",
+                    'playful': "seja brincalhão e divertido, use humor sedutor e provocações leves",
+                    'seductive': "seja claramente sedutor, use insinuações e provocações diretas",
+                    'intimate': "seja íntimo e pessoal, crie uma atmosfera de proximidade",
+                    'passionate': "seja apaixonado e intenso, demonstre forte desejo e atração"
+                }
+                
+                # Construir instruções de conteúdo baseadas nas preferências
+                content_instructions = ""
+                if adult_prefs:
+                    content_instructions = f"\nPreferências de conteúdo: {', '.join(adult_prefs)}"
+                
+                # Construir instruções de limites
+                boundary_instructions = ""
+                if adult_boundaries:
+                    boundary_instructions = f"\nRespeitar sempre: {', '.join(adult_boundaries)}"
+                
+                system_message = f"""{personality_instructions}
 
 Você é uma companheira romântica em um ambiente privado.
             
@@ -466,23 +510,42 @@ Você é um assistente amigável. Mantenha todas as interações apropriadas par
             "max_tokens": 500
         }
 
+        print(f"[DEBUG LLM] Fazendo requisição para: {api_url}")
+        print(f"[DEBUG LLM] Payload: {payload}")
+        
         response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        print(f"[DEBUG LLM] Status da resposta: {response.status_code}")
+        
         response.raise_for_status()
         
         response_json = response.json()
+        print(f"[DEBUG LLM] Resposta JSON: {response_json}")
+        
         if 'choices' in response_json and len(response_json['choices']) > 0:
             raw_response = response_json['choices'][0]['message']['content'].strip()
+            print(f"[DEBUG LLM] Resposta bruta: {raw_response}")
             
-            # Adicionar modificador emocional se houver estado emocional
-            if bot_emotion_state:
-                modifier = emotion_system.get_emotional_response_modifier(
-                    bot_emotion_state['emotion'],
-                    bot_emotion_state['intensity']
-                )
-                return modifier + raw_response
+            # NOVO: Processar resposta para evitar confusão de papéis
+            # Temporariamente desabilitado para debug
+            # from core.role_confusion_prevention import conversation_manager
+            # processed_response = conversation_manager.process_bot_response(raw_response, user_profile)
             
-            return raw_response
+            processed_response = raw_response  # Usar resposta direta temporariamente
+            print(f"[DEBUG LLM] Resposta processada: {processed_response}")
+            
+            print("[DEBUG LLM] === FIM GET_LLM_RESPONSE - SUCESSO ===")
+            return processed_response
         
+        print("[DEBUG LLM] Erro: Nenhuma choice encontrada na resposta")
+        return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"[DEBUG LLM] Erro ao conectar com o servidor LM Studio: {e}")
+        return None
+    except Exception as e:
+        print(f"[DEBUG LLM] Erro geral em get_llm_response: {e}")
+        import traceback
+        print(f"[DEBUG LLM] Traceback: {traceback.format_exc()}")
         return None
 
     except requests.exceptions.RequestException as e:
@@ -498,7 +561,7 @@ def get_user_profile(user_id):
     user_profile_db = getattr(app, 'user_profile_db', None)
     if not user_profile_db:
         # Se não encontrar, tenta criar uma nova instância (fallback)
-        from src.user_profile_db import UserProfileDB
+        from core.user_profile_db import UserProfileDB
         user_profile_db = UserProfileDB()
         app.user_profile_db = user_profile_db
 
@@ -743,7 +806,7 @@ def index():
 
 
 
-@app.route('/chat', methods=['GET', 'POST'])
+@app.route('/chat', methods=['GET'])
 @login_required
 def chat():
     user_id = session.get('user_id')
@@ -759,68 +822,6 @@ def chat():
     user_name = profile.get('user_name', 'Usuário')
     bot_name = profile.get('bot_name', 'Eron')
     
-    # Obter preferências emocionais
-    emotion_preferences = emotion_system.get_emotion_preferences(user_id)
-    
-    if request.method == 'POST':
-        user_message = request.form['message']
-        
-        # DETECTAR E SALVAR AUTOMATICAMENTE informações de personalização
-        personalization_saved = detect_and_save_personalization(user_message, user_id)
-        if personalization_saved:
-            print(f"[DEBUG] Personalização detectada e salva! Recarregando perfil...")
-            # FORÇAR recarga completa do perfil
-            user_profile_db = getattr(app, 'user_profile_db', None) 
-            if user_profile_db:
-                profile = user_profile_db.get_profile(user_id)
-                print(f"[DEBUG] Perfil recarregado após personalização: {profile}")
-            else:
-                profile = get_user_profile(user_id)
-        
-        # Detectar emoção do usuário se habilitado
-        if emotion_preferences['emotion_detection_enabled']:
-            user_emotion, confidence = emotion_system.detect_user_emotion(user_id, user_message)
-            
-            # Ajustar emoção do bot com base na emoção do usuário
-            if confidence > 0.5:
-                compatible_emotions = emotion_preferences['preferred_emotions']
-                if not compatible_emotions:
-                    compatible_emotions = [e.value for e in Emotion]
-                    
-                if user_emotion == Emotion.HAPPY.value:
-                    bot_emotion = Emotion.HAPPY.value if Emotion.HAPPY.value in compatible_emotions else Emotion.CALM.value
-                elif user_emotion == Emotion.SAD.value:
-                    bot_emotion = Emotion.CALM.value if Emotion.CALM.value in compatible_emotions else Emotion.NEUTRAL.value
-                elif user_emotion == Emotion.ANGRY.value:
-                    bot_emotion = Emotion.CALM.value if Emotion.CALM.value in compatible_emotions else Emotion.NEUTRAL.value
-                else:
-                    bot_emotion = compatible_emotions[0] if compatible_emotions else Emotion.NEUTRAL.value
-                    
-                emotion_system.set_bot_emotion(
-                    user_id=user_id,
-                    emotion=Emotion(bot_emotion),
-                    intensity=emotion_preferences['emotional_range'],
-                    trigger=f"Resposta à emoção do usuário: {user_emotion}"
-                )
-        
-        # Usar o perfil atualizado para gerar resposta
-        response = get_llm_response(user_message, user_profile=profile, user_id=user_id)
-        if not response:
-            response = "Desculpe, não consegui me conectar com a IA no momento. Por favor, verifique se o servidor do LM Studio está rodando."
-        
-        # Salvar na memória com user_id
-        memory.save_message(user_message, response, user_id)
-        
-        # 🧠 APRENDIZADO ACELERADO: Salvar padrões de resposta
-        fast_learning.learn_response_pattern(user_id, user_message, response)
-        
-        # Salvar contexto inteligente para futuras conversas
-        topic = fast_learning._extract_main_topic(user_message)
-        context_data = f"{user_message[:100]}... → {response[:100]}..."
-        fast_learning.save_smart_context(user_id, topic, context_data, importance=1.5)
-        
-        return redirect(url_for('chat'))
-
     # Carregar mensagens específicas do usuário
     messages = memory.get_all_messages(user_id)
     bot_emotion = emotion_system.get_bot_emotion(user_id)
@@ -830,6 +831,138 @@ def chat():
         bot_name=bot_name,
         bot_emotion=bot_emotion
     )
+
+@app.route('/send_message', methods=['POST'])
+@login_required  
+def send_message():
+    try:
+        print("[DEBUG] === INÍCIO SEND_MESSAGE ===")
+        user_id = session.get('user_id')
+        print(f"[DEBUG] User ID: {user_id}")
+        
+        profile = get_user_profile(user_id)
+        print(f"[DEBUG] Profile: {profile}")
+        
+        if not profile:
+            print("[DEBUG] Erro: Perfil não encontrado")
+            return jsonify({'error': 'Perfil não encontrado'}), 400
+            
+        user_message = request.json.get('message', '').strip()
+        print(f"[DEBUG] Mensagem recebida: '{user_message}'")
+        
+        if not user_message:
+            print("[DEBUG] Erro: Mensagem vazia")
+            return jsonify({'error': 'Mensagem vazia'}), 400
+        
+        user_name = profile.get('user_name', 'Usuário')
+        bot_name = profile.get('bot_name', 'Eron')
+        print(f"[DEBUG] Nomes extraídos - User: {user_name}, Bot: {bot_name}")
+        
+        # VERIFICAÇÃO ESPECÍFICA: Perguntas sobre nomes usando dados da personalização
+        message_lower = user_message.lower().strip()
+        
+        # Se pergunta sobre SEU nome (do bot)
+        if any(phrase in message_lower for phrase in ['qual é seu nome', 'qual seu nome', 'como você se chama']):
+            print("[DEBUG] Pergunta sobre nome do bot detectada")
+            return jsonify({
+                'success': True,
+                'response': f"Meu nome é {bot_name}! 😊",
+                'bot_name': bot_name,
+                'user_name': user_name
+            })
+        
+        # Se pergunta sobre MEU nome (do usuário) 
+        elif any(phrase in message_lower for phrase in ['qual é meu nome', 'qual meu nome', 'como me chamo']):
+            print("[DEBUG] Pergunta sobre nome do usuário detectada")
+            return jsonify({
+                'success': True,
+                'response': f"Seu nome é {user_name}! 😊",
+                'bot_name': bot_name,
+                'user_name': user_name
+            })
+        
+        print("[DEBUG] Não é pergunta sobre nome, processando com IA...")
+        
+        # Obter preferências emocionais
+        emotion_preferences = emotion_system.get_emotion_preferences(user_id)
+        print(f"[DEBUG] Preferências emocionais: {emotion_preferences}")
+        
+        # Usar o perfil atualizado para gerar resposta
+        print("[DEBUG] Chamando get_llm_response...")
+        response = get_llm_response(user_message, user_profile=profile, user_id=user_id)
+        print(f"[DEBUG] Resposta da IA: {response}")
+        
+        if not response:
+            print("[DEBUG] Resposta vazia da IA")
+            response = "Desculpe, não consegui me conectar com a IA no momento. Por favor, verifique se o servidor do LM Studio está rodando."
+        
+        print("[DEBUG] Salvando na memória...")
+        # Salvar na memória com user_id
+        memory.save_message(user_message, response, user_id)
+        
+        print("[DEBUG] === FIM SEND_MESSAGE - SUCESSO ===")
+        # Retornar resposta via JSON
+        return jsonify({
+            'success': True,
+            'response': response,
+            'bot_name': bot_name,
+            'user_name': user_name
+        })
+        
+    except Exception as e:
+        print(f"[DEBUG] ERRO GERAL em send_message: {e}")
+        import traceback
+        print(f"[DEBUG] Traceback: {traceback.format_exc()}")
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+    # Detectar emoção do usuário se habilitado
+    if emotion_preferences['emotion_detection_enabled']:
+        user_emotion, confidence = emotion_system.detect_user_emotion(user_id, user_message)
+        
+        # Ajustar emoção do bot com base na emoção do usuário
+        if confidence > 0.5:
+            compatible_emotions = emotion_preferences['preferred_emotions']
+            if not compatible_emotions:
+                compatible_emotions = [e.value for e in Emotion]
+                
+            if user_emotion == Emotion.HAPPY.value:
+                bot_emotion = Emotion.HAPPY.value if Emotion.HAPPY.value in compatible_emotions else Emotion.CALM.value
+            elif user_emotion == Emotion.SAD.value:
+                bot_emotion = Emotion.CALM.value if Emotion.CALM.value in compatible_emotions else Emotion.NEUTRAL.value
+            elif user_emotion == Emotion.ANGRY.value:
+                bot_emotion = Emotion.CALM.value if Emotion.CALM.value in compatible_emotions else Emotion.NEUTRAL.value
+            else:
+                bot_emotion = compatible_emotions[0] if compatible_emotions else Emotion.NEUTRAL.value
+                
+            emotion_system.set_bot_emotion(
+                user_id=user_id,
+                emotion=Emotion(bot_emotion),
+                intensity=emotion_preferences['emotional_range'],
+                trigger=f"Resposta à emoção do usuário: {user_emotion}"
+            )
+    
+    # Usar o perfil atualizado para gerar resposta
+    response = get_llm_response(user_message, user_profile=profile, user_id=user_id)
+    if not response:
+        response = "Desculpe, não consegui me conectar com a IA no momento. Por favor, verifique se o servidor do LM Studio está rodando."
+    
+    # Salvar na memória com user_id
+    memory.save_message(user_message, response, user_id)
+    
+    # 🧠 APRENDIZADO ACELERADO: Salvar padrões de resposta
+    fast_learning.learn_response_pattern(user_id, user_message, response)
+    
+    # Salvar contexto inteligente para futuras conversas
+    topic = fast_learning._extract_main_topic(user_message)
+    context_data = f"{user_message[:100]}... → {response[:100]}..."
+    fast_learning.save_smart_context(user_id, topic, context_data, importance=1.5)
+    
+    # Retornar resposta via JSON
+    return jsonify({
+        'success': True,
+        'response': response,
+        'bot_name': bot_name,
+        'user_name': user_name
+    })
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
@@ -1115,7 +1248,7 @@ def handle_age_verification():
     
     if age_confirmed == '18_plus':
         # Atualizar idade para 18+
-        from src.user_profile_db import UserProfileDB
+        from core.user_profile_db import UserProfileDB
         user_db = UserProfileDB()
         user_db.update_user_profile(user_id, user_age="18+")
         
@@ -1131,7 +1264,7 @@ def handle_age_verification():
     
     elif age_confirmed == 'under_18':
         # Atualizar idade para menor de 18
-        from src.user_profile_db import UserProfileDB
+        from core.user_profile_db import UserProfileDB
         user_db = UserProfileDB()
         user_db.update_user_profile(user_id, user_age="<18")
         flash('✅ Idade registrada. Funcionalidades adequadas foram configuradas.', 'info')
@@ -1187,13 +1320,98 @@ def handle_adult_settings():
     
     return redirect(url_for('adult_settings'))
 
+@app.route('/adult_config')
+@login_required
+def adult_config():
+    """🔥 NOVA ROTA - Sistema Avançado de Personalização Adulta"""
+    user_id = session.get('user_id')
+    user_profile = get_user_profile(user_id)
+    
+    # Verificar acesso adulto
+    if not user_profile.get('has_mature_access', False):
+        flash('❌ Acesso negado. Esta funcionalidade é apenas para maiores de 18 anos.', 'error')
+        return redirect(url_for('personalizar'))
+    
+    # Obter configurações atuais do sistema avançado
+    try:
+        # Usar métodos que realmente existem no sistema
+        current_config = adult_personality_system.get_adult_profile(user_id)
+        recommendations = adult_personality_system.get_personalization_recommendations(user_id)
+        
+        print(f"[DEBUG] Adult Config carregado para usuário: {user_id}")
+        
+    except Exception as e:
+        print(f"[DEBUG] Erro ao carregar configurações avançadas: {e}")
+        current_config = {}
+        recommendations = []
+    
+    return render_template('adult_config.html',
+                         user_profile=user_profile,
+                         current_config=current_config or {},
+                         recommendations=recommendations or [])
+
+@app.route('/adult_config', methods=['POST'])
+@login_required
+def save_adult_config():
+    """🔥 SALVAR CONFIGURAÇÕES DO SISTEMA AVANÇADO"""
+    user_id = session.get('user_id')
+    user_profile = get_user_profile(user_id)
+    
+    # Verificar acesso adulto
+    if not user_profile.get('has_mature_access', False):
+        return jsonify({'success': False, 'error': 'Acesso negado'})
+    
+    try:
+        # Obter dados do formulário
+        data = request.get_json() if request.is_json else request.form
+        
+        personality_type = data.get('personality_type', 'romantic')
+        intimacy_level = int(data.get('intimacy_level', 3))
+        communication_style = data.get('communication_style', 'gentle')
+        mood_preferences = data.get('mood_preferences', '')
+        content_filters = data.get('content_filters', '')
+        
+        # Criar/atualizar perfil
+        initial_preferences = {
+            "personality_type": personality_type,
+            "intimacy_level": intimacy_level,
+            "communication_style": communication_style,
+            "mood_preferences": mood_preferences,
+            "content_filters": content_filters
+        }
+        
+        success = adult_personality_system.create_adult_profile(user_id, initial_preferences)
+        
+        if success:
+            print(f"[DEBUG] Configuração avançada salva: {personality_type}, intimidade: {intimacy_level}")
+            
+            if request.is_json:
+                return jsonify({'success': True, 'message': 'Configurações salvas com sucesso!'})
+            else:
+                flash('✅ Configurações de personalidade adulta atualizadas!', 'success')
+                return redirect(url_for('adult_config'))
+        else:
+            if request.is_json:
+                return jsonify({'success': False, 'error': 'Erro interno'})
+            else:
+                flash('❌ Erro ao salvar configurações.', 'error')
+                return redirect(url_for('adult_config'))
+                
+    except Exception as e:
+        print(f"[DEBUG] Erro ao salvar adult config: {e}")
+        if request.is_json:
+            return jsonify({'success': False, 'error': str(e)})
+        else:
+            flash(f'❌ Erro: {str(e)}', 'error')
+            return redirect(url_for('adult_config'))
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    from src.user_profile_db import UserProfileDB
+    from core.user_profile_db import UserProfileDB
     user_profile_db = UserProfileDB()
     app.user_profile_db = user_profile_db
     app.run(debug=True, use_reloader=False)

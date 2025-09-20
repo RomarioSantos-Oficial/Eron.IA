@@ -5,9 +5,9 @@ Implementa funcionalidades equivalentes à versão web
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from src.telegram_formatter import TelegramFormatter
-from src.telegram_preferences import TelegramPreferences
-from src.unified_messages import UnifiedMessages
+from core.telegram_formatter import TelegramFormatter
+from core.telegram_preferences import TelegramPreferences
+from core.unified_messages import UnifiedMessages
 import sys
 import os
 
@@ -23,7 +23,7 @@ class TelegramCommands:
         
         try:
             # Importar dependências da aplicação web
-            from src.user_profile_db import UserProfileDB
+            from core.user_profile_db import UserProfileDB
             
             user_id = str(update.effective_user.id)
             
@@ -73,7 +73,7 @@ class TelegramCommands:
         """Comando /preferences - Abre menu de preferências"""
         
         try:
-            from src.preferences import PreferencesManager
+            from core.preferences import PreferencesManager
             
             user_id = str(update.effective_user.id)
             
@@ -105,7 +105,7 @@ class TelegramCommands:
         """Comando /emotions - Mostra estado emocional"""
         
         try:
-            from src.emotion_system import EmotionSystem
+            from core.emotion_system import EmotionSystem
             
             user_id = str(update.effective_user.id)
             
@@ -153,7 +153,7 @@ class TelegramCommands:
         """Comando /stats - Estatísticas de uso"""
         
         try:
-            from src.memory import Memory
+            from core.memory import Memory
             
             user_id = str(update.effective_user.id)
             
@@ -206,8 +206,8 @@ class TelegramCommands:
         """Comando /backup - Fazer backup das configurações"""
         
         try:
-            from src.user_profile_db import UserProfileDB
-            from src.preferences import PreferencesManager
+            from core.user_profile_db import UserProfileDB
+            from core.preferences import PreferencesManager
             import json
             from datetime import datetime
             

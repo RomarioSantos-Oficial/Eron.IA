@@ -1,5 +1,160 @@
-Flask
-python-dotenv
-requests
-cryptography
-python-telegram-bot
+# ====================
+# ERON.IA - DEPENDÊNCIAS
+# ====================
+# Instale com: pip install -r requirements.txt
+
+# ====================
+# FRAMEWORK WEB
+# ====================
+# Framework principal para a aplicação web
+Flask==3.0.0
+# Utilitários do Flask para upload de arquivos e segurança
+Werkzeug==3.0.1
+
+# ====================
+# TELEGRAM BOT
+# ====================
+# Biblioteca oficial do Telegram para Python
+python-telegram-bot==20.7
+
+# ====================
+# VARIÁVEIS DE AMBIENTE
+# ====================
+# Para carregar configurações de arquivos .env
+python-dotenv==1.0.0
+
+# ====================
+# CRIPTOGRAFIA E SEGURANÇA
+# ====================
+# Para criptografia de dados sensíveis
+cryptography==41.0.8
+# Para hash de senhas (já incluído no Python, mas explícito para clareza)
+# hashlib - Built-in Python module
+
+# ====================
+# BANCO DE DADOS
+# ====================
+# SQLite já vem com Python, mas listando para documentação
+# sqlite3 - Built-in Python module
+
+# ====================
+# REQUISIÇÕES HTTP
+# ====================
+# Para comunicação com APIs (LM Studio, etc.)
+requests==2.31.0
+# Para parsing e manipulação de URLs
+urllib3==2.1.0
+
+# ====================
+# PROCESSAMENTO DE DADOS
+# ====================
+# Para manipulação de dados JSON avançada
+jsonschema==4.20.0
+# Para processamento de texto e regex avançado
+regex==2023.10.3
+
+# ====================
+# EMAIL
+# ====================
+# Para envio de emails (recuperação de senha, etc.)
+# smtplib - Built-in Python module
+# email - Built-in Python module
+
+# ====================
+# DATA E TEMPO
+# ====================
+# Para manipulação avançada de datas
+python-dateutil==2.8.2
+# Para timezone support
+pytz==2023.3
+
+# ====================
+# SISTEMA E OS
+# ====================
+# Para operações do sistema operacional
+# os - Built-in Python module
+# sys - Built-in Python module
+# threading - Built-in Python module
+# argparse - Built-in Python module
+# webbrowser - Built-in Python module
+# atexit - Built-in Python module
+
+# ====================
+# UTILITÁRIOS
+# ====================
+# Para IDs únicos
+# uuid - Built-in Python module
+# Para decoradores funcionais
+# functools - Built-in Python module
+# Para logging avançado
+# logging - Built-in Python module
+
+# ====================
+# DESENVOLVIMENTO
+# ====================
+# Para debugging (opcional)
+pdb-attach==3.2.0
+# Para profiling de performance (opcional)
+memory-profiler==0.61.0
+
+# ====================
+# PROCESSAMENTO DE ARQUIVOS
+# ====================
+# Para manipulação de CSV
+# csv - Built-in Python module
+# Para processamento de arquivos
+pathlib2==2.3.7
+
+# ====================
+# INTERFACE E UX
+# ====================
+# Para progress bars em terminal (opcional)
+tqdm==4.66.1
+# Para formatação colorida de output (opcional)
+colorama==0.4.6
+
+# ====================
+# ANÁLISE DE SENTIMENTOS
+# ====================
+# Para análise emocional avançada (opcional)
+textblob==0.17.1
+# Para processamento de linguagem natural básico
+nltk==3.8.1
+
+# ====================
+# VALIDAÇÃO DE DADOS
+# ====================
+# Para validação de emails e dados
+email-validator==2.1.0
+# Para validação de schemas
+cerberus==1.3.4
+
+# ====================
+# SESSÕES E CACHE
+# ====================
+# Para gerenciamento avançado de sessões Flask
+Flask-Session==0.5.0
+# Para cache em memória (opcional)
+cachetools==5.3.2
+
+# ====================
+# MONITORAMENTO
+# ====================
+# Para monitoramento de recursos do sistema (opcional)
+psutil==5.9.6
+
+# ====================
+# BACKUP E COMPRESSÃO
+# ====================
+# Para compressão de backups (opcional)
+# gzip - Built-in Python module
+# zipfile - Built-in Python module
+
+# ====================
+# NOTAS IMPORTANTES
+# ====================
+# 1. Versões fixadas para estabilidade em produção
+# 2. Módulos built-in do Python são comentados para referência
+# 3. Dependências opcionais marcadas como (opcional)
+# 4. Para desenvolvimento: pip install -r requirements.txt
+# 5. Para produção: considere usar um virtual environment

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
 from functools import wraps
 
-from src.email_service import EmailService
+from core.email_service import EmailService
 
 # Criar blueprint
 auth_bp = Blueprint('auth', __name__)

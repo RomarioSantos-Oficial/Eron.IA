@@ -250,7 +250,7 @@ async def save_preference(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(query.from_user.id)
     
     try:
-        from src.preferences import PreferencesManager
+        from core.preferences import PreferencesManager
         preferences_manager = PreferencesManager()
         
         # Extrair tipo e valor da preferência
@@ -295,7 +295,7 @@ async def execute_reset_preferences(update: Update, context: ContextTypes.DEFAUL
     user_id = str(query.from_user.id)
     
     try:
-        from src.preferences import PreferencesManager
+        from core.preferences import PreferencesManager
         preferences_manager = PreferencesManager()
         
         success = preferences_manager.reset_all_preferences(user_id)

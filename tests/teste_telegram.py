@@ -6,7 +6,7 @@ Teste do Sistema de Personalização do Telegram
 """
 
 import re
-from src.user_profile_db import UserProfileDB
+from core.user_profile_db import UserProfileDB
 
 def test_name_detection(message):
     """Testa detecção de nomes"""

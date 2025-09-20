@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Importa a aplicação web e a função do bot
 from web.app import app
 from telegram_bot.bot_main import create_telegram_bot
-from src.user_profile_db import UserProfileDB as DatabaseManager
+from core.user_profile_db import UserProfileDB as DatabaseManager
 
 # Carrega as variáveis de ambiente
 load_dotenv()

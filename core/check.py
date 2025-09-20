@@ -11,7 +11,7 @@ class AdultAccessSystem:
     def __init__(self):
         # Usar o mesmo banco de perfis
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        db_path = os.path.join(base_dir, 'memoria', 'user_profiles.db')
+        db_path = os.path.join(base_dir, 'database', 'user_profiles.db')
         self.db_path = db_path
     
     def get_connection(self):

@@ -5,7 +5,7 @@
 Teste Final: Correção Telegram Romario/Mariana
 """
 
-from src.user_profile_db import UserProfileDB
+from core.user_profile_db import UserProfileDB
 
 # Simular exatamente o que deveria acontecer
 user_id = "telegram_romario_final"

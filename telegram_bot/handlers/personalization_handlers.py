@@ -69,7 +69,7 @@ async def handle_personalization_callbacks(update: Update, context: ContextTypes
     user_id = str(query.from_user.id)
     
     try:
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         user_service = UserService()
         
         if callback_data == "personalize_user":
@@ -262,7 +262,7 @@ async def save_personalization_data(update: Update, context: ContextTypes.DEFAUL
     user_id = str(query.from_user.id)
     
     try:
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         user_service = UserService()
         
         success = user_service.save_personalization_setting(user_id, callback_data)
@@ -302,7 +302,7 @@ async def save_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE, fie
     user_id = str(query.from_user.id)
     
     try:
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         user_service = UserService()
         
         # Mapear valores para o banco
@@ -367,7 +367,7 @@ async def save_user_topics(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(query.from_user.id)
     
     try:
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         user_service = UserService()
         
         selected_topics = context.user_data.get('selected_topics', set())

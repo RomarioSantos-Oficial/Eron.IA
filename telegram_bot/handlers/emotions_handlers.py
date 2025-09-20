@@ -93,7 +93,7 @@ async def show_emotion_status(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = str(update.callback_query.from_user.id)
     
     try:
-        from src.emotion_system import EmotionSystem
+        from core.emotion_system import EmotionSystem
         emotion_system = EmotionSystem()
         
         current_emotion = emotion_system.get_current_emotion(user_id)
@@ -216,7 +216,7 @@ async def show_emotion_history(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = str(update.callback_query.from_user.id)
     
     try:
-        from src.emotion_system import EmotionSystem
+        from core.emotion_system import EmotionSystem
         emotion_system = EmotionSystem()
         
         emotions = emotion_system.get_recent_emotions(user_id, limit=10)
@@ -251,7 +251,7 @@ async def set_user_emotion(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         emotion_name = callback_data.split('_')[2]
         
-        from src.emotion_system import EmotionSystem, Emotion
+        from core.emotion_system import EmotionSystem, Emotion
         emotion_system = EmotionSystem()
         
         # Criar objeto de emoção
@@ -285,7 +285,7 @@ async def save_emotion_setting(update: Update, context: ContextTypes.DEFAULT_TYP
         setting_type = parts[2]
         setting_value = '_'.join(parts[3:])
         
-        from src.emotion_system import EmotionSystem
+        from core.emotion_system import EmotionSystem
         emotion_system = EmotionSystem()
         
         success = emotion_system.save_user_setting(user_id, setting_type, setting_value)
@@ -324,7 +324,7 @@ async def execute_emotion_reset(update: Update, context: ContextTypes.DEFAULT_TY
     user_id = str(query.from_user.id)
     
     try:
-        from src.emotion_system import EmotionSystem
+        from core.emotion_system import EmotionSystem
         emotion_system = EmotionSystem()
         
         success = emotion_system.reset_user_emotions(user_id)

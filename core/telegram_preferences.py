@@ -4,8 +4,8 @@ Permite configuração detalhada similar à versão web
 """
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from src.telegram_formatter import TelegramFormatter, format_bold
-from src.unified_messages import UnifiedMessages
+from core.telegram_formatter import TelegramFormatter, format_bold
+from core.unified_messages import UnifiedMessages
 
 class TelegramPreferences:
     """Gerenciador de preferências para o Telegram"""

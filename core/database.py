@@ -14,7 +14,7 @@ class DatabaseManager:
     
     def __init__(self, base_dir: Optional[str] = None):
         if base_dir is None:
-            self.base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'memoria')
+            self.base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'database')
         else:
             self.base_dir = base_dir
         

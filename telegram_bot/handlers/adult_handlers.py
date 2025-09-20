@@ -1,17 +1,25 @@
 """
-Handlers para sistema adulto/NSFW
+Handlers para sistema adulto/NSFW AVANÇADO
+Sistema completo de personalização adulta para Telegram
 """
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
+from core.adult_personality_system import AdultPersonalitySystem
 
 # Estados para sistema adulto
 ADULT_TERMS = 30
 ADULT_AGE_VERIFICATION = 31
+ADULT_PERSONALITY_SELECT = 32
+ADULT_CONFIG_MENU = 33
+ADULT_PREFERENCES_CONFIG = 34
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Inicializar sistema avançado
+adult_system = AdultPersonalitySystem()
 
 async def start_adult_activation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Iniciar processo de ativação do modo adulto"""
@@ -19,7 +27,7 @@ async def start_adult_activation(update: Update, context: ContextTypes.DEFAULT_T
     
     # Verificar se já está ativado
     try:
-        from src.check import check_age
+        from core.check import check_age
         adult_status = check_age(user_id)
         
         if adult_status.get('adult_mode_active'):
@@ -118,7 +126,7 @@ async def request_age_verification(update: Update, context: ContextTypes.DEFAULT
     user_id = str(update.callback_query.from_user.id)
     
     try:
-        from src.check import activate_adult_mode
+        from core.check import activate_adult_mode
         
         # Ativar modo adulto
         success = activate_adult_mode(user_id)
@@ -186,7 +194,7 @@ async def show_adult_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.callback_query.from_user.id)
     
     try:
-        from src.check import check_age
+        from core.check import check_age
         adult_data = check_age(user_id)
         
         if adult_data.get('adult_mode_active'):
@@ -221,7 +229,7 @@ async def set_adult_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
         gender = callback_data.split('_')[2]  # adult_gender_feminine -> feminine
         
         # Salvar gênero adulto
-        from src.check import set_adult_gender as save_adult_gender
+        from core.check import set_adult_gender as save_adult_gender
         success = save_adult_gender(user_id, gender)
         
         if success:
@@ -258,7 +266,7 @@ async def deactivate_adult_mode(update: Update, context: ContextTypes.DEFAULT_TY
     user_id = str(query.from_user.id)
     
     try:
-        from src.check import deactivate_adult_mode as deactivate_adult
+        from core.check import deactivate_adult_mode as deactivate_adult
         success = deactivate_adult(user_id)
         
         if success:

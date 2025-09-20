@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block title %}Configurações Avançadas Adultas - Eron.IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .personality-card {
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        margin: 15px;
+        background: var(--bg-secondary);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .personality-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    }
+    
+    .personality-card.selected {
+        border-color: var(--primary-color);
+        background: rgba(0, 255, 0, 0.1);
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    }
+    
+    .config-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .intensity-slider {
+        width: 100%;
+        margin: 10px 0;
+    }
+    
+    .btn-save {
+        background: linear-gradient(45deg, var(--primary-color), #00cc00);
+        color: black;
+        font-weight: bold;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4" style="color: var(--primary-color);">
+                🔥 Sistema Avançado de Personalização Adulta (+18)
+            </h2>
+            
+            <div class="alert alert-info">
+                <strong>🎯 Personalize sua experiência:</strong> Configure personalidade, intensidade e preferências para uma experiência única e respeitosa.
+            </div>
+        </div>
+    </div>
+    
+    <form id="advancedConfigForm" method="POST">
+        <!-- Seleção de Personalidade -->
+        <div class="config-section">
+            <h4 style="color: var(--primary-color);">👤 Tipo de Personalidade</h4>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="personality-card" data-personality="romantic">
+                        <h5>💕 Romântico</h5>
+                        <p>Carinhoso, poético, focado em conexão emocional</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="personality-card" data-personality="playful">
+                        <h5>😄 Brincalhão</h5>
+                        <p>Divertido, espontâneo, com humor sedutor</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="personality-card" data-personality="passionate">
+                        <h5>🔥 Apaixonado</h5>
+                        <p>Intenso, ardente, demonstra forte desejo</p>
+                    </div>
+                </div>
+            </div>
+            
+            <input type="hidden" id="personality_type" name="personality_type" value="{{ current_config.personality_type or 'romantic' }}">
+        </div>
+        
+        <!-- Configurações de Intensidade -->
+        <div class="config-section">
+            <h4 style="color: var(--primary-color);">⚡ Nível de Intimidade</h4>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="range" id="intimacy_level" name="intimacy_level" 
+                           min="1" max="5" value="{{ current_config.intimacy_level or 3 }}" 
+                           class="intensity-slider">
+                </div>
+                <div class="col-md-4">
+                    <span id="intimacyValue" style="font-size: 1.2em; color: var(--primary-color);">{{ current_config.intimacy_level or 3 }}</span>/5
+                </div>
+            </div>
+            
+            <div class="mt-2">
+                <small class="text-muted">1 = Sutil | 3 = Moderado | 5 = Muito Intenso</small>
+            </div>
+        </div>
+        
+        <!-- Estilo de Comunicação -->
+        <div class="config-section">
+            <h4 style="color: var(--primary-color);">💬 Estilo de Comunicação</h4>
+            
+            <select id="communication_style" name="communication_style" class="form-control">
+                <option value="gentle" {% if current_config.communication_style == 'gentle' %}selected{% endif %}>Gentil e Cuidadoso</option>
+                <option value="direct" {% if current_config.communication_style == 'direct' %}selected{% endif %}>Direto e Confiante</option>
+                <option value="poetic" {% if current_config.communication_style == 'poetic' %}selected{% endif %}>Poético e Eloquente</option>
+                <option value="playful" {% if current_config.communication_style == 'playful' %}selected{% endif %}>Brincalhão e Divertido</option>
+            </select>
+        </div>
+        
+        <!-- Preferências de Humor -->
+        <div class="config-section">
+            <h4 style="color: var(--primary-color);">😊 Preferências de Humor</h4>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" id="mood_preferences" name="mood_preferences" 
+                           class="form-control" placeholder="Ex: romântico, brincalhão, sedutor"
+                           value="{{ current_config.mood_preferences or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">Separe com vírgulas os humores que você prefere</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtros de Conteúdo -->
+        <div class="config-section">
+            <h4 style="color: var(--primary-color);">🛡️ Filtros de Conteúdo</h4>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" id="content_filters" name="content_filters" 
+                           class="form-control" placeholder="Ex: no_violence, consent_focused"
+                           value="{{ current_config.content_filters or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">Defina seus limites e preferências de segurança</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botão de Salvar -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn-save">
+                💾 Salvar Configurações Avançadas
+            </button>
+        </div>
+    </form>
+    
+    <!-- Recomendações (se disponíveis) -->
+    {% if recommendations %}
+    <div class="config-section mt-4">
+        <h4 style="color: var(--primary-color);">💡 Recomendações Personalizadas</h4>
+        <ul>
+            {% for rec in recommendations %}
+            <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gerenciar seleção de personalidade
+    const personalityCards = document.querySelectorAll('.personality-card');
+    const personalityInput = document.getElementById('personality_type');
+    
+    personalityCards.forEach(card => {
+        // Marcar personalidade atual como selecionada
+        if (card.dataset.personality === personalityInput.value) {
+            card.classList.add('selected');
+        }
+        
+        card.addEventListener('click', function() {
+            personalityCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            personalityInput.value = this.dataset.personality;
+        });
+    });
+    
+    // Atualizar display do slider
+    const slider = document.getElementById('intimacy_level');
+    const valueDisplay = document.getElementById('intimacyValue');
+    
+    slider.addEventListener('input', function() {
+        valueDisplay.textContent = this.value;
+    });
+    
+    // Gerenciar envio do formulário
+    document.getElementById('advancedConfigForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        fetch('/adult_config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('✅ ' + result.message);
+            } else {
+                alert('❌ Erro: ' + result.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ Erro de conexão: ' + error);
+        });
+    });
+});
+</script>
+{% endblock %}

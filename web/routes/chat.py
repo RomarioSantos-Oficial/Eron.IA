@@ -65,7 +65,7 @@ def feedback():
             return jsonify({'error': 'Tipo de feedback inválido'}), 400
         
         # Salvar feedback
-        from src.fast_learning import FastLearningSystem
+        from core.fast_learning import FastLearningSystem
         fast_learning = FastLearningSystem()
         
         success = fast_learning.save_feedback(

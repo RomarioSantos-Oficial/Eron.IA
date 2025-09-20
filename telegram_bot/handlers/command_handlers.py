@@ -9,7 +9,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     first_name = update.effective_user.first_name or "usuário"
     
-    from src.user_profile_db import UserProfileDB as UserService
+    from core.user_profile_db import UserProfileDB as UserService
     user_service = UserService()
     
     # Verificar se usuário já existe
@@ -110,7 +110,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         
         user_service = UserService()
         

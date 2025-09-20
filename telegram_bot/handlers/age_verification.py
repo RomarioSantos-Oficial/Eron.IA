@@ -9,8 +9,8 @@ import os
 # Adicionar o diretório raiz ao path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from src.check import AdultAccessSystem
-from src.user_profile_db import UserProfileDB
+from core.check import AdultAccessSystem
+from core.user_profile_db import UserProfileDB
 
 adult_system = AdultAccessSystem()
 user_db = UserProfileDB()

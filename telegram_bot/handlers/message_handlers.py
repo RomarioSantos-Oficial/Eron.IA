@@ -95,7 +95,7 @@ async def process_personalization_input(update: Update, context: ContextTypes.DE
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram_bot.handlers.personalization_handlers import start_personalization_menu
         
         user_service = UserService()
@@ -147,7 +147,7 @@ async def process_full_personalization_input(update: Update, context: ContextTyp
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
         user_service = UserService()

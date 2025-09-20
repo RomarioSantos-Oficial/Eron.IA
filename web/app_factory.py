@@ -3,7 +3,7 @@ Factory de Aplicação Flask
 Configuração centralizada da aplicação web
 """
 from flask import Flask
-from src.preferences import PreferencesManager as get_config_service
+from core.preferences import PreferencesManager as get_config_service
 from .routes import register_blueprints
 
 def create_app(config_name: str = 'default') -> Flask:

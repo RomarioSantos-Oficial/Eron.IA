@@ -43,7 +43,7 @@ def debug_profile():
     user_id = session.get('user_id')
     
     try:
-        from src.user_profile_db import UserProfileDB
+        from core.user_profile_db import UserProfileDB
         profile_db = UserProfileDB()
         profile = profile_db.get_profile(user_id)
         

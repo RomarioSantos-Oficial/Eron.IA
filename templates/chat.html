@@ -189,10 +189,10 @@
     {% endfor %}
 </div>
 
-<form method="post" class="chat-input-container">
-    <input type="text" name="message" class="chat-input" placeholder="Digite sua mensagem..." autocomplete="off" required>
-    <button type="submit" class="send-button">Enviar</button>
-</form>
+<div class="chat-input-container">
+    <input type="text" id="messageInput" class="chat-input" placeholder="Digite sua mensagem..." autocomplete="off" required>
+    <button type="button" id="sendButton" class="send-button">Enviar</button>
+</div>
 
 {% endblock %}
 
@@ -204,10 +204,81 @@
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
+    // Função para adicionar uma nova mensagem ao chat
+    function addMessage(sender, message, isUser = false) {
+        const messagesContainer = document.getElementById("messages");
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'eron'}`;
+        
+        messageDiv.innerHTML = `
+            <div class="message-header">${sender}</div>
+            <div class="message-bubble">${message}</div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // Função para enviar mensagem via AJAX
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Desabilitar botão de envio
+        const sendButton = document.getElementById('sendButton');
+        sendButton.disabled = true;
+        sendButton.textContent = '...';
+        
+        // Adicionar mensagem do usuário ao chat
+        addMessage('{{ user_name or "Você" }}', message, true);
+        
+        // Limpar input
+        input.value = '';
+        
+        // Enviar para servidor via AJAX
+        fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Adicionar resposta da IA ao chat
+                addMessage(data.bot_name || 'Eron', data.response, false);
+            } else {
+                // Mostrar erro
+                addMessage('Sistema', 'Erro: ' + (data.error || 'Falha na comunicação'), false);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            addMessage('Sistema', 'Erro de conexão. Tente novamente.', false);
+        })
+        .finally(() => {
+            // Reabilitar botão
+            sendButton.disabled = false;
+            sendButton.textContent = 'Enviar';
+        });
+    }
+
+    // Event listeners
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
     // Rola quando a página carrega
     window.onload = scrollToBottom;
-
-    // Rola quando novas mensagens são adicionadas
     var messages = document.getElementById("messages");
     var observer = new MutationObserver(scrollToBottom);
     observer.observe(messages, { childList: true });

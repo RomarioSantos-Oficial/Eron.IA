@@ -4,7 +4,7 @@ Simula navegação da versão web usando keyboards elaborados
 """
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from src.telegram_formatter import TelegramFormatter
+from core.telegram_formatter import TelegramFormatter
 
 class TelegramMenus:
     """Sistema de menus interativos avançados"""

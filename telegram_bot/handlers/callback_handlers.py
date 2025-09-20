@@ -184,10 +184,10 @@ async def confirm_clear_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
-        from src.memory import EronMemory
-        from src.preferences import PreferencesManager
-        from src.emotion_system import EmotionSystem
+        from core.user_profile_db import UserProfileDB as UserService
+        from core.memory import EronMemory
+        from core.preferences import PreferencesManager
+        from core.emotion_system import EmotionSystem
         
         user_service = UserService()
         memory = EronMemory()
@@ -322,7 +322,7 @@ async def handle_user_gender_selection(update: Update, context: ContextTypes.DEF
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         
         user_service = UserService()
         print(f"[DEBUG] Salvando gênero {gender} no banco...")
@@ -367,7 +367,7 @@ async def handle_bot_gender_selection(update: Update, context: ContextTypes.DEFA
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
         user_service = UserService()
@@ -426,7 +426,7 @@ async def handle_personality_selection(update: Update, context: ContextTypes.DEF
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
         user_service = UserService()
@@ -473,7 +473,7 @@ async def handle_language_style_selection(update: Update, context: ContextTypes.
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
         user_service = UserService()
@@ -594,7 +594,7 @@ async def finish_personalization(update: Update, context: ContextTypes.DEFAULT_T
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
         user_service = UserService()
@@ -666,7 +666,7 @@ async def handle_name_selection(update: Update, context: ContextTypes.DEFAULT_TY
         import sys
         import os
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-        from src.user_profile_db import UserProfileDB as UserService
+        from core.user_profile_db import UserProfileDB as UserService
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
         user_service = UserService()

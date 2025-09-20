@@ -1,12 +1,193 @@
+# ====================
+# PYTHON ENVIRONMENT
+# ====================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
 venv/
 .venv/
+ENV/
+env/
+.ENV/
 .env
-/memoria
 
+# ====================
+# DADOS SENSÍVEIS DOS USUÁRIOS
+# ====================
+# Pasta completa de memória com dados pessoais
+/memoria/
+memoria/
+
+# Arquivos de banco de dados com informações pessoais
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos de chave de criptografia
+*.key
+sensitive.key
+encryption.key
+
+# Logs que podem conter dados pessoais
+*.log
+logs/
+/logs/
+
+# Arquivos de configuração com tokens e senhas
+config.json
+settings.json
+secrets.json
+credentials.json
+.secrets
+.credentials
+
+# Variáveis de ambiente com dados sensíveis
+.env*
+!.env.example
+
+# Backups que podem conter dados pessoais
+backup/
+backups/
+*.backup
+*.bak
+
+# Arquivos temporários que podem conter dados sensíveis
+temp/
+tmp/
+.tmp/
+*.tmp
+*.temp
+
+# ====================
+# DADOS ESPECÍFICOS DO ERON.IA
+# ====================
 # Pasta de conteúdo adulto - NÃO SUBIR
 /Eron-18/
+Eron-18/
+
+# Arquivos de perfil de usuários
+user_profiles.db
+*_profiles.db
+profiles/
+
+# Histórico de conversas
+conversations/
+chat_history/
+*.chat
+
+# Dados de personalização dos usuários
+personalization/
+user_data/
+*.userdata
+
+# Arquivos de emoções e estados pessoais
+emotions.db
+emotional_state/
+
+# Conhecimento pessoal/privado
+knowledge.db
+personal_knowledge/
+
+# Preferências específicas dos usuários
+preferences.db
+user_preferences/
+
+# Memória sensível
+sensitive_memory.db
+sensitive/
+
+# ====================
+# SISTEMA OPERACIONAL
+# ====================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Linux
+*~
+.directory
+
+# ====================
+# EDITORES E IDEs
+# ====================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ====================
+# TELEGRAM BOT
+# ====================
+# Token do bot (se armazenado em arquivo)
+bot_token.txt
+telegram_token.txt
+
+# ====================
+# WEB APPLICATION
+# ====================
+# Sessões do Flask
+flask_session/
+sessions/
+
+# Uploads de usuários
+uploads/
+static/uploads/
+user_uploads/
+
+# ====================
+# CERTIFICADOS E CHAVES
+# ====================
+# Certificados SSL
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# Chaves privadas
+*.private
+*_private.key
+private_key.*
+
+# ====================
+# EXEMPLOS QUE DEVEM SER MANTIDOS
+# ====================
+# Manter exemplos genéricos (sem dados reais)
+!exemplos/conversas_normais.csv
+!exemplos/*.example

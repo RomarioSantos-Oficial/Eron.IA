@@ -300,6 +300,24 @@
                                 <small class="form-text text-muted">Permite conversas de natureza adulta e romântica</small>
                             </div>
 
+                            <!-- 🔥 BOTÃO PARA SISTEMA AVANÇADO -->
+                            <div class="form-group" id="advanced-adult-group" style="display: none;">
+                                <div class="alert alert-success" style="background-color: rgba(0, 255, 0, 0.1); border: 1px solid var(--primary-color);">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <strong>🚀 Sistema Avançado Disponível!</strong><br>
+                                            <small>Configure personalidades específicas, humores e preferências detalhadas</small>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <a href="{{ url_for('adult_config') }}" class="btn" 
+                                               style="background-color: var(--primary-color); color: black; font-weight: bold; text-decoration: none; padding: 8px 16px; border-radius: 4px;">
+                                                ⚙️ Configurações Avançadas
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-group" id="adult-intensity-group" style="display: none;">
                                 <label for="adult_intensity">Nível de Intensidade</label>
                                 <select class="form-control" id="adult_intensity" name="adult_intensity">
@@ -413,7 +431,8 @@
             'adult-intensity-group',
             'adult-style-group', 
             'adult-preferences-group',
-            'adult-boundaries-group'
+            'adult-boundaries-group',
+            'advanced-adult-group'  // 🔥 NOVO GRUPO AVANÇADO
         ];
         
         groups.forEach(groupId => {

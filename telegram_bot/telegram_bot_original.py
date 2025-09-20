@@ -2,10 +2,10 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, ConversationHandler, CallbackQueryHandler, filters
-from src.memory import EronMemory
-from src.preferences import PreferencesManager
-from src.emotion_system import EmotionSystem
-from src.user_profile_db import UserProfileDB
+from core.memory import EronMemory
+from core.preferences import PreferencesManager
+from core.emotion_system import EmotionSystem
+from core.user_profile_db import UserProfileDB
 from app import get_llm_response
 import re
 import json

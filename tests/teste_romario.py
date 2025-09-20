@@ -5,7 +5,7 @@
 Teste da Personalização: Caso Romario/Mariana
 """
 
-from src.user_profile_db import UserProfileDB
+from core.user_profile_db import UserProfileDB
 import re
 
 def detect_and_save_personalization_test(user_message, user_id):

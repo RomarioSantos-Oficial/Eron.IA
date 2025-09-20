@@ -72,6 +72,17 @@ class TelegramBot:
         self.application.add_handler(CommandHandler("adult_config", show_adult_config_menu))
         self.application.add_handler(CommandHandler("adult_status", show_adult_status))
         
+        # Sistema Adulto Avançado - INTEGRAÇÃO COMPLETA
+        try:
+            from telegram_bot.handlers.advanced_adult_handlers import advanced_adult_handlers
+            for handler in advanced_adult_handlers:
+                self.application.add_handler(handler)
+            logger.info("✅ Sistema adulto avançado integrado com sucesso!")
+        except ImportError as e:
+            logger.error(f"⚠️ Erro ao carregar sistema adulto avançado: {e}")
+        except Exception as e:
+            logger.error(f"⚠️ Erro inesperado no sistema adulto avançado: {e}")
+        
         # Registrar handlers de callback (ordem importa!)
         self.application.add_handler(CallbackQueryHandler(age_callback_handler, pattern='^age_.*'))
         self.application.add_handler(CallbackQueryHandler(handle_adult_callbacks, pattern='^adult_.*'))
