@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração Adulta - Eron.IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adult_theme.css') }}">
+    <style>
+        .config-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .config-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .config-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .intensity-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .intensity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .intensity-display {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .personality-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .personality-option {
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .personality-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .personality-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .personality-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .personality-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .personality-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .save-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(118, 75, 162, 0.4);
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
+        }
+        
+        .preview-box {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <div class="config-container">
+        <a href="{{ url_for('adult.dashboard') }}" class="back-btn">← Voltar ao Dashboard</a>
+        
+        <div class="config-header">
+            <h1>⚙️ Configuração de Personalidade</h1>
+            <p>Personalize completamente a experiência adulta da IA</p>
+        </div>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <form class="config-form" id="configForm">
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🎭</span>
+                    <span>Personalidade da IA</span>
+                </div>
+                
+                <div class="personality-grid">
+                    {% for personality in personalities %}
+                    <div class="personality-option" data-personality="{{ personality }}">
+                        <div class="personality-icon">
+                            {% if personality == 'sedutora' %}🔥
+                            {% elif personality == 'romantica' %}💕
+                            {% elif personality == 'dominante' %}👑
+                            {% elif personality == 'submissa' %}🎀
+                            {% elif personality == 'travessa' %}😈
+                            {% elif personality == 'carinhosa' %}🤗
+                            {% else %}✨{% endif %}
+                        </div>
+                        <div class="personality-name">{{ personality|title }}</div>
+                        <div class="personality-desc">
+                            {% if personality == 'sedutora' %}Sensual e provocante
+                            {% elif personality == 'romantica' %}Doce e amorosa
+                            {% elif personality == 'dominante' %}Controladora e intensa
+                            {% elif personality == 'submissa' %}Obediente e dedicada
+                            {% elif personality == 'travessa' %}Brincalhona e ousada
+                            {% elif personality == 'carinhosa' %}Afetuosa e gentil
+                            {% else %}Personalidade única{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <input type="hidden" id="selectedPersonality" name="personality" value="{{ config.personality if config else '' }}">
+            </div>
+            
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🌡️</span>
+                    <span>Intensidade das Respostas</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="intensity">Nível de Intensidade (1-5):</label>
+                    <input type="range" id="intensity" name="intensity" min="1" max="5" 
+                           value="{{ config.intensity if config else 1 }}" class="intensity-slider">
+                    <div class="intensity-display" id="intensityDisplay">
+                        Nível {{ config.intensity if config else 1 }} - 
+                        <span id="intensityLabel">Suave</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="section-title">
+                    <span>😊</span>
+                    <span>Humor e Atmosfera</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mood">Humor Atual:</label>
+                    <select id="mood" name="mood">
+                        <option value="normal" {{ 'selected' if config and config.mood == 'normal' else '' }}>😊 Normal</option>
+                        <option value="playful" {{ 'selected' if config and config.mood == 'playful' else '' }}>😄 Brincalhona</option>
+                        <option value="romantic" {{ 'selected' if config and config.mood == 'romantic' else '' }}>💖 Romântico</option>
+                        <option value="seductive" {{ 'selected' if config and config.mood == 'seductive' else '' }}>🔥 Sedutora</option>
+                        <option value="mysterious" {{ 'selected' if config and config.mood == 'mysterious' else '' }}>🌙 Misteriosa</option>
+                        <option value="passionate" {{ 'selected' if config and config.mood == 'passionate' else '' }}>❤️‍🔥 Apaixonada</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🔄</span>
+                    <span>Ativação do Sistema</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="active">Sistema Adulto:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="active" name="active" 
+                               {{ 'checked' if config and config.active else '' }}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span style="margin-left: 15px;" id="activeLabel">
+                        {{ 'Ativo' if config and config.active else 'Inativo' }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="preview-box" id="previewBox">
+                <div class="preview-title">💡 Preview da Configuração:</div>
+                <div id="previewContent"></div>
+            </div>
+            
+            <button type="submit" class="save-btn">
+                💾 Salvar Configuração
+            </button>
+        </form>
+    </div>
+    
+    <script>
+        // Configuração inicial
+        const config = {{ config|tojson if config else '{}' }};
+        
+        // Elementos
+        const personalityOptions = document.querySelectorAll('.personality-option');
+        const selectedPersonalityInput = document.getElementById('selectedPersonality');
+        const intensitySlider = document.getElementById('intensity');
+        const intensityDisplay = document.getElementById('intensityDisplay');
+        const intensityLabel = document.getElementById('intensityLabel');
+        const activeToggle = document.getElementById('active');
+        const activeLabel = document.getElementById('activeLabel');
+        const previewBox = document.getElementById('previewBox');
+        const previewContent = document.getElementById('previewContent');
+        const alertBox = document.getElementById('alertBox');
+        
+        // Labels de intensidade
+        const intensityLabels = {
+            1: 'Suave',
+            2: 'Moderada',
+            3: 'Intensa',
+            4: 'Muito Intensa',
+            5: 'Extrema'
+        };
+        
+        // Inicializar seleção de personalidade
+        function initPersonalitySelection() {
+            const currentPersonality = config.personality || '';
+            personalityOptions.forEach(option => {
+                if (option.dataset.personality === currentPersonality) {
+                    option.classList.add('selected');
+                }
+                
+                option.addEventListener('click', function() {
+                    personalityOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedPersonalityInput.value = this.dataset.personality;
+                    updatePreview();
+                });
+            });
+        }
+        
+        // Atualizar slider de intensidade
+        function updateIntensityDisplay() {
+            const value = intensitySlider.value;
+            intensityDisplay.innerHTML = `Nível ${value} - <span id="intensityLabel">${intensityLabels[value]}</span>`;
+        }
+        
+        // Atualizar toggle ativo
+        function updateActiveLabel() {
+            activeLabel.textContent = activeToggle.checked ? 'Ativo' : 'Inativo';
+        }
+        
+        // Atualizar preview
+        function updatePreview() {
+            const personality = selectedPersonalityInput.value;
+            const intensity = intensitySlider.value;
+            const mood = document.getElementById('mood').value;
+            const active = activeToggle.checked;
+            
+            if (personality && active) {
+                previewBox.style.display = 'block';
+                previewContent.innerHTML = `
+                    <strong>Personalidade:</strong> ${personality.charAt(0).toUpperCase() + personality.slice(1)}<br>
+                    <strong>Intensidade:</strong> ${intensity}/5 (${intensityLabels[intensity]})<br>
+                    <strong>Humor:</strong> ${mood.charAt(0).toUpperCase() + mood.slice(1)}<br>
+                    <strong>Status:</strong> Sistema Ativo ✅
+                `;
+            } else {
+                previewBox.style.display = 'none';
+            }
+        }
+        
+        // Event listeners
+        intensitySlider.addEventListener('input', function() {
+            updateIntensityDisplay();
+            updatePreview();
+        });
+        
+        activeToggle.addEventListener('change', function() {
+            updateActiveLabel();
+            updatePreview();
+        });
+        
+        document.getElementById('mood').addEventListener('change', updatePreview);
+        
+        // Submissão do formulário
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                personality: selectedPersonalityInput.value,
+                intensity: parseInt(intensitySlider.value),
+                mood: document.getElementById('mood').value,
+                active: activeToggle.checked
+            };
+            
+            try {
+                const response = await fetch('{{ url_for("adult.update_config") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuração salva com sucesso!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("adult.dashboard") }}';
+                    }, 2000);
+                } else {
+                    showAlert('Erro ao salvar configuração: ' + (data.error || 'Erro desconhecido'), 'error');
+                }
+            } catch (error) {
+                showAlert('Erro de conexão: ' + error.message, 'error');
+            }
+        });
+        
+        // Função para mostrar alertas
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Inicializar
+        initPersonalitySelection();
+        updateIntensityDisplay();
+        updateActiveLabel();
+        updatePreview();
+    </script>
+    {% endblock %}
+</body>
+</html>

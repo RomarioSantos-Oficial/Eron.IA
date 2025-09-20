@@ -52,6 +52,16 @@ app.permanent_session_lifetime = timedelta(days=30)
 # Anexar user_profile_db ao app Flask
 app.user_profile_db = user_profile_db
 
+# Sistema adulto web integrado
+try:
+    from adult_routes import register_adult_routes
+    register_adult_routes(app)
+    print("✅ Sistema Adulto Web integrado com sucesso")
+    ADULT_SYSTEM_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Sistema adulto web não disponível: {e}")
+    ADULT_SYSTEM_AVAILABLE = False
+
 # Configurações para URL building
 # app.config['SERVER_NAME'] = 'localhost:5002'  # Comentado para evitar problemas
 app.config['APPLICATION_ROOT'] = '/'
@@ -801,8 +811,29 @@ def index():
         # Se o usuário está logado, mas não completou a personalização, redirecione
         if not profile.get('user_age'):
             return redirect(url_for('personalizar'))
-        return redirect(url_for('chat'))
+        return redirect(url_for('dashboard'))  # Redireciona para dashboard
     return render_template('landing.html')
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Dashboard unificado com acesso a todas as funcionalidades"""
+    user_id = session.get('user_id')
+    profile = get_user_profile(user_id)
+    
+    # Verificar se usuário é maior de idade para sistema adulto
+    adult_access = False
+    if profile.get('user_age'):
+        try:
+            age = int(profile['user_age'])
+            adult_access = age >= 18
+        except (ValueError, TypeError):
+            adult_access = False
+    
+    return render_template('dashboard.html', 
+                         profile=profile,
+                         adult_access=adult_access,
+                         adult_system_available=ADULT_SYSTEM_AVAILABLE)
 
 
 

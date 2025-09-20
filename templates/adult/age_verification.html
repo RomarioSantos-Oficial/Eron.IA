@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificação de Idade - Eron.IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adult_theme.css') }}">
+    <style>
+        .age-verification {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .warning-icon {
+            font-size: 64px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        
+        .age-form {
+            margin-top: 30px;
+        }
+        
+        .form-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .verify-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(238, 90, 36, 0.4);
+        }
+        
+        .error-msg {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="age-verification">
+        <div class="warning-icon">🔞</div>
+        <h1>Verificação de Idade</h1>
+        <p>O sistema adulto do Eron.IA contém conteúdo para maiores de 18 anos.</p>
+        <p><strong>É necessário verificar sua idade para continuar.</strong></p>
+        
+        <div class="error-msg" id="errorMsg"></div>
+        
+        <form class="age-form" id="ageForm">
+            <div class="form-group">
+                <label for="birthDate">Data de Nascimento:</label>
+                <input type="date" id="birthDate" name="birth_date" required>
+            </div>
+            
+            <button type="submit" class="verify-btn">
+                🔒 Verificar Idade
+            </button>
+        </form>
+        
+        <a href="{{ url_for('index') }}" class="back-link">
+            ← Voltar ao Sistema Principal
+        </a>
+    </div>
+
+    <script>
+        document.getElementById('ageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const birthDate = document.getElementById('birthDate').value;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if (!birthDate) {
+                errorMsg.textContent = 'Por favor, informe sua data de nascimento.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch('{{ url_for("adult.verify_age") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `birth_date=${birthDate}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    errorMsg.textContent = data.error || 'Erro na verificação';
+                    errorMsg.style.display = 'block';
+                    
+                    if (data.redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 3000);
+                    }
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Erro de conexão. Tente novamente.';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

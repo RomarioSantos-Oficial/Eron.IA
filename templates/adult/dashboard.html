@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Adulto - Eron.IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adult_theme.css') }}">
+    <style>
+        .adult-dashboard {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .card-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .card-action {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .card-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.4);
+        }
+        
+        .current-config {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .config-value {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .quick-btn {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <div class="adult-dashboard">
+        <div class="dashboard-header">
+            <h1>🔞 Sistema Adulto Eron.IA</h1>
+            <p>Bem-vindo ao sistema avançado de personalização adulta</p>
+            <div class="status-badge">
+                {% if config and config.active %}
+                    ✅ Sistema Ativo - {{ config.personality|title }}
+                {% else %}
+                    ⚪ Sistema Inativo
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if config %}
+        <div class="current-config">
+            <h3>📊 Configuração Atual</h3>
+            <div class="config-item">
+                <span>Personalidade:</span>
+                <span class="config-value">{{ config.personality|title or 'Nenhuma' }}</span>
+            </div>
+            <div class="config-item">
+                <span>Intensidade:</span>
+                <span class="config-value">{{ config.intensity or 1 }}/5</span>
+            </div>
+            <div class="config-item">
+                <span>Humor:</span>
+                <span class="config-value">{{ config.mood|title or 'Normal' }}</span>
+            </div>
+            <div class="config-item">
+                <span>Status:</span>
+                <span class="config-value">
+                    {% if config.active %}
+                        🟢 Ativo
+                    {% else %}
+                        🔴 Inativo
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">Configurar Personalidade</div>
+                <div class="card-description">
+                    Configure a personalidade, intensidade e humor da IA para interações personalizadas.
+                </div>
+                <a href="{{ url_for('adult.config_page') }}" class="card-action">
+                    Configurar Agora
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">🎯</div>
+                <div class="card-title">Treinamento de Vocabulário</div>
+                <div class="card-description">
+                    Treine a IA com vocabulário específico e respostas mais sugestivas e personalizadas.
+                </div>
+                <a href="{{ url_for('adult.training_page') }}" class="card-action">
+                    Iniciar Treinamento
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">💬</div>
+                <div class="card-title">Chat Adulto</div>
+                <div class="card-description">
+                    Converse com a IA usando todas as funcionalidades adultas ativadas e personalizadas.
+                </div>
+                <a href="{{ url_for('chat') }}" class="card-action">
+                    Abrir Chat
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">📱</div>
+                <div class="card-title">Telegram Bot</div>
+                <div class="card-description">
+                    Use o mesmo sistema no Telegram com sincronização completa de configurações.
+                </div>
+                <button class="card-action" onclick="showTelegramInfo()">
+                    Ver Informações
+                </button>
+            </div>
+        </div>
+        
+        <div class="quick-actions">
+            <a href="{{ url_for('adult.config_page') }}" class="quick-btn">⚙️ Configurações</a>
+            <a href="{{ url_for('adult.training_page') }}" class="quick-btn">🎯 Treinamento</a>
+            <a href="{{ url_for('chat') }}" class="quick-btn">💬 Chat</a>
+            <button class="quick-btn" onclick="toggleSystem()">
+                {% if config and config.active %}
+                    ⏸️ Desativar
+                {% else %}
+                    ▶️ Ativar
+                {% endif %}
+            </button>
+            <a href="{{ url_for('index') }}" class="quick-btn">🏠 Principal</a>
+        </div>
+    </div>
+    
+    <div id="telegramModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; max-width: 500px; text-align: center;">
+            <h3>🤖 Telegram Bot</h3>
+            <p>Para usar o sistema adulto no Telegram:</p>
+            <ol style="text-align: left; margin: 20px 0;">
+                <li>Inicie o bot Telegram do Eron.IA</li>
+                <li>Use <code>/adult_mode</code> para ativar</li>
+                <li>Configure com <code>/adult_config</code></li>
+                <li>Treine com <code>/adult_train</code></li>
+            </ol>
+            <p><strong>Suas configurações são sincronizadas automaticamente!</strong></p>
+            <button onclick="document.getElementById('telegramModal').style.display='none'" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                Fechar
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        function showTelegramInfo() {
+            document.getElementById('telegramModal').style.display = 'block';
+        }
+        
+        async function toggleSystem() {
+            try {
+                const currentActive = {{ config.active|tojson if config else 'false' }};
+                
+                const response = await fetch('{{ url_for("adult.update_config") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        active: !currentActive,
+                        personality: '{{ config.personality if config else "sedutora" }}',
+                        intensity: {{ config.intensity if config else 1 }},
+                        mood: '{{ config.mood if config else "normal" }}'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao alterar sistema: ' + (data.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+    </script>
+    {% endblock %}
+</body>
+</html>
