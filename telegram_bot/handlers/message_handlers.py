@@ -1,9 +1,16 @@
 """
 Handlers de mensagens do bot Telegram
+SISTEMA AVANÇADO INTEGRADO
 """
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
+from .adult_integration import (
+    get_adult_personality_context,
+    format_adult_response_with_personality,
+    update_adult_session_feedback,
+    log_adult_interaction
+)
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -44,8 +51,47 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Log da mensagem recebida
         logger.info(f"Mensagem recebida de {user_id}: {user_message}")
         
+        # SISTEMA ADULTO AVANÇADO - Verificar contexto
+        adult_context = get_adult_personality_context(user_id)
+        log_adult_interaction(user_id, "message_received", {"message": user_message[:100]})
+        
+        # VERIFICAÇÃO ESPECÍFICA: Perguntas sobre nomes no Telegram
+        from core.user_profile_db import UserProfileDB
+        user_service = UserProfileDB()
+        user_profile = user_service.get_profile(user_id) or {}
+        
+        user_name = user_profile.get('user_name', 'usuário')
+        bot_name = user_profile.get('bot_name', 'Eron')
+        
+        message_lower = user_message.lower().strip()
+        
+        # Se pergunta sobre SEU nome (do bot)
+        if any(phrase in message_lower for phrase in ['qual é seu nome', 'qual seu nome', 'como você se chama', 'seu nome?']):
+            logger.info(f"Pergunta sobre nome do bot detectada no Telegram")
+            response = f"Meu nome é {bot_name}! 😊"
+            if adult_context.get('advanced_system'):
+                response = format_adult_response_with_personality(user_id, response)
+            await update.message.reply_text(response)
+            return
+        
+        # Se pergunta sobre MEU nome (do usuário) 
+        elif any(phrase in message_lower for phrase in ['qual é meu nome', 'qual meu nome', 'como me chamo', 'meu nome?']):
+            logger.info(f"Pergunta sobre nome do usuário detectada no Telegram")
+            response = f"Seu nome é {user_name}! 😊"
+            if adult_context.get('advanced_system'):
+                response = format_adult_response_with_personality(user_id, response)
+            await update.message.reply_text(response)
+            return
+        
         # Obter resposta do sistema de IA
         response = get_llm_response(user_message, user_id=user_id)
+        
+        # SISTEMA ADULTO AVANÇADO - Aplicar formatação de personalidade
+        if response and adult_context.get('advanced_system'):
+            response = format_adult_response_with_personality(user_id, response)
+            # Registrar feedback da sessão
+            update_adult_session_feedback(user_id, user_message, response)
+            log_adult_interaction(user_id, "response_sent", {"response_length": len(response)})
         
         # Enviar resposta
         if response:
@@ -57,7 +103,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text(response)
         else:
-            await update.message.reply_text("Desculpe, não consegui processar sua mensagem. Tente novamente!")
+            fallback_msg = "Desculpe, não consegui processar sua mensagem. Tente novamente!"
+            if adult_context.get('advanced_system'):
+                fallback_msg = format_adult_response_with_personality(user_id, fallback_msg)
+            await update.message.reply_text(fallback_msg)
     
     except Exception as e:
         logger.error(f"Erro ao processar mensagem: {e}")
