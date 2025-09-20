@@ -19,7 +19,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     try:
         # Verificar se está no fluxo de personalização completa
-        if context.user_data.get('personalizing'):
+        personalization_step = context.user_data.get('personalization_step')
+        print(f"[DEBUG] personalization_step: {personalization_step}")
+        print(f"[DEBUG] context.user_data: {context.user_data}")
+        
+        if personalization_step:
+            print(f"[DEBUG] Processando personalização - step: {personalization_step}")
             await process_full_personalization_input(update, context, user_message)
             return
         
