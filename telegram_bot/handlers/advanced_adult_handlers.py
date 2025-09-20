@@ -446,3 +446,13 @@ try:
     advanced_adult_handlers.extend(discovery_commands)
 except ImportError:
     pass
+
+# Adicionar sistema de treinamento
+try:
+    from .adult_training_handlers import training_handlers
+    advanced_adult_handlers.extend(training_handlers)
+    print("✅ Sistema de treinamento adulto carregado!")
+except ImportError as e:
+    print(f"⚠️ Erro ao carregar sistema de treinamento: {e}")
+except Exception as e:
+    print(f"⚠️ Erro inesperado no sistema de treinamento: {e}")

@@ -1,12 +1,15 @@
 """
 Integração do Sistema Adulto Avançado com Message Handlers
+SISTEMA DE VOCABULÁRIO E TREINAMENTO INTEGRADO
 """
 import logging
 from core.adult_personality_system import AdultPersonalitySystem
+from core.adult_vocabulary_trainer import AdultVocabularyTrainer
 from core.check import check_age
 
 logger = logging.getLogger(__name__)
 adult_system = AdultPersonalitySystem()
+vocabulary_trainer = AdultVocabularyTrainer()
 
 def get_adult_personality_context(user_id: str) -> dict:
     """
@@ -28,8 +31,16 @@ def get_adult_personality_context(user_id: str) -> dict:
                 'message': 'Sistema básico ativo. Use /adult_config para upgrade!'
             }
         
-        # Gerar instruções de personalidade
+        # Gerar instruções de personalidade APRIMORADAS com vocabulário
         personality_instructions = adult_system.generate_personality_instructions(profile)
+        
+        # NOVO: Obter prompt aprimorado com vocabulário específico
+        enhanced_prompt = vocabulary_trainer.generate_enhanced_prompt(
+            personality_type=profile.get('personality_type'),
+            intensity_level=profile.get('intimacy_level', 3),
+            mood=profile.get('current_mood', 'neutro'),
+            user_message=''
+        )
         
         return {
             'adult_mode': True,
@@ -37,6 +48,7 @@ def get_adult_personality_context(user_id: str) -> dict:
             'personality_type': profile.get('personality_type'),
             'current_mood': profile.get('current_mood', 'neutro'),
             'personality_instructions': personality_instructions,
+            'enhanced_prompt': enhanced_prompt,  # NOVO
             'profile_data': profile
         }
         
@@ -138,8 +150,15 @@ def is_advanced_adult_active(user_id: str) -> bool:
     return context.get('advanced_system', False)
 
 def get_personality_instructions_for_llm(user_id: str) -> str:
-    """Obter instruções de personalidade para o LLM"""
+    """Obter instruções de personalidade APRIMORADAS para o LLM"""
     context = get_adult_personality_context(user_id)
+    
+    # Retornar prompt aprimorado se disponível
+    enhanced_prompt = context.get('enhanced_prompt', '')
+    if enhanced_prompt:
+        return enhanced_prompt
+    
+    # Fallback para instruções básicas
     return context.get('personality_instructions', '')
 
 def log_adult_interaction(user_id: str, interaction_type: str, details: dict = None):
