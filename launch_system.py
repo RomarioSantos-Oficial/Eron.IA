@@ -43,9 +43,18 @@ def main():
     print_banner()
     
     # Verificar se estamos no diretório correto
-    if not os.path.exists('app.py'):
+    app_files = ['app.py', 'web/app.py']
+    app_file = None
+    for file in app_files:
+        if os.path.exists(file):
+            app_file = file
+            break
+    
+    if not app_file:
         print("❌ Erro: app.py não encontrado!")
         sys.exit(1)
+    
+    print(f"✅ Usando app: {app_file}")
     
     # Verificar se existe bot do telegram (qualquer versão)
     telegram_files = ['telegram_bot.py', 'simple_telegram_bot.py', 'telegram_bot/bot_main.py']
@@ -61,7 +70,7 @@ def main():
     
     print(f"✅ Usando bot: {telegram_file}")
     
-    # Atualizar função do telegram para usar o arquivo correto
+    # Atualizar funções para usar os arquivos corretos
     def run_telegram_bot_updated():
         try:
             print("🔄 Iniciando Telegram Bot...")
@@ -69,9 +78,18 @@ def main():
         except Exception as e:
             print(f"❌ Erro no Telegram Bot: {e}")
     
-    # Substituir função original
-    global run_telegram_bot
+    def run_web_app_updated():
+        try:
+            print("🔄 Iniciando Web App...")
+            time.sleep(2)  # Dar tempo para o telegram inicializar
+            os.system(f'python {app_file}')
+        except Exception as e:
+            print(f"❌ Erro na Web App: {e}")
+    
+    # Substituir funções originais
+    global run_telegram_bot, run_web_app
     run_telegram_bot = run_telegram_bot_updated
+    run_web_app = run_web_app_updated
     
     print("🎯 FUNCIONALIDADES DISPONÍVEIS:")
     print("  WEB (http://localhost:5000):")
