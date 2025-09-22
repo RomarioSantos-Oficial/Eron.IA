@@ -119,6 +119,8 @@ def personalize():
     if request.method == 'POST':
         try:
             from core.user_profile_db import UserProfileDB
+            from src.personalization_filter import apply_personalization_filter
+            
             profile_db = UserProfileDB()
             
             # Dados de personalização
@@ -133,15 +135,43 @@ def personalize():
                 'interests': request.form.getlist('interests')
             }
             
-            # Salvar perfil
-            success = profile_db.update_profile(user_id, profile_data)
+            # Aplicar filtro de personalização específico
+            # Combinar todos os campos de texto para análise
+            content_to_check = f"{profile_data.get('personality', '')} {' '.join(profile_data.get('interests', []))}"
             
-            if success:
-                flash('Personalização salva com sucesso!', 'success')
+            # Obter perfil atual para criar dict completo
+            current_profile = profile_db.get_profile(user_id) or {}
+            # Atualizar com novos dados
+            current_profile.update(profile_data)
+            
+            filter_result = apply_personalization_filter(
+                content=content_to_check,
+                user_profile=current_profile
+            )
+            
+            # Log do resultado da moderação
+            print(f"🎭 PERSONALIZAÇÃO - Usuário: {user_id}")
+            print(f"   Permitido: {filter_result['allowed']}")
+            print(f"   Razão: {filter_result['reason']}")
+            print(f"   Moderação ignorada: {filter_result.get('bypass_moderation', False)}")
+            
+            if filter_result['allowed']:
+                # Salvar perfil se permitido
+                success = profile_db.update_profile(user_id, profile_data)
+                
+                if success:
+                    if filter_result.get('bypass_moderation'):
+                        flash('✅ Personalização adulta salva sem restrições!', 'success')
+                    else:
+                        flash('Personalização salva com sucesso!', 'success')
+                else:
+                    flash('Erro ao salvar personalização', 'error')
             else:
-                flash('Erro ao salvar personalização', 'error')
+                # Conteúdo não permitido
+                flash(f'❌ Personalização bloqueada: {filter_result["reason"]}', 'error')
                 
         except Exception as e:
+            print(f"Erro na personalização: {e}")
             flash('Erro interno ao salvar personalização', 'error')
         
         return redirect(url_for('config.personalize'))
@@ -151,7 +181,12 @@ def personalize():
         from core.user_profile_db import UserProfileDB
         profile_db = UserProfileDB()
         current_profile = profile_db.get_profile(user_id)
+        
+        # Adicionar informação sobre moderação para o template
+        from src.personalization_filter import is_adult_user_simple
+        current_profile['is_adult_user'] = is_adult_user_simple(current_profile)
+        
     except:
-        current_profile = {}
+        current_profile = {'is_adult_user': False}
     
     return render_template('personalize.html', profile=current_profile)

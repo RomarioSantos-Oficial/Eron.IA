@@ -45,13 +45,25 @@ class FastLearning:
             
             # Tabela de contexto inteligente
             self.conn.execute('''
-                CREATE TABLE IF NOT EXISTS smart_context (
+                CREATE TABLE IF NOT EXISTS smart_contexts (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id TEXT,
                     topic TEXT,
                     context_data TEXT,
                     importance_score REAL DEFAULT 1.0,
                     last_accessed DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabela de sessões de aprendizado  
+            self.conn.execute('''
+                CREATE TABLE IF NOT EXISTS learning_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT,
+                    session_start DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    questions_count INTEGER DEFAULT 0,
+                    improvements_count INTEGER DEFAULT 0,
+                    session_quality REAL DEFAULT 1.0
                 )
             ''')
             
@@ -119,7 +131,7 @@ class FastLearning:
             # Buscar contexto relevante por tópico e importância
             contexts = self.conn.execute('''
                 SELECT context_data, importance_score 
-                FROM smart_context 
+                FROM smart_contexts 
                 WHERE user_id = ? AND topic LIKE ? 
                 ORDER BY importance_score DESC, last_accessed DESC 
                 LIMIT ?
@@ -140,7 +152,7 @@ class FastLearning:
         """Salvar contexto inteligente com pontuação de importância"""
         with self.conn:
             self.conn.execute('''
-                INSERT INTO smart_context 
+                INSERT INTO smart_contexts 
                 (user_id, topic, context_data, importance_score)
                 VALUES (?, ?, ?, ?)
             ''', (user_id, topic, context_data, importance))

@@ -1,20 +1,21 @@
 """
 Telegram Bot - Sistema Completo de Bot
-Handlers e funcionalidades do Telegram
+Módulo principal do bot Telegram
 """
 
-from .bot_main import TelegramBot, run_bot, create_telegram_bot
-from .handlers.command_handlers import start, help_command, menu_command
-from .handlers.message_handlers import handle_message
-from .handlers.callback_handlers import handle_callback_query
+# Importações do sistema principal funcional
+from .telegram_bot_original import (
+    get_adult_personality_context,
+    is_advanced_adult_active,
+    get_personality_instructions_for_llm,
+    format_adult_response_with_personality,
+    get_adult_system_status_summary
+)
 
 __all__ = [
-    'TelegramBot', 
-    'run_bot',
-    'create_telegram_bot',
-    'start',
-    'help_command', 
-    'menu_command',
-    'handle_message',
-    'handle_callback_query'
+    'get_adult_personality_context',
+    'is_advanced_adult_active', 
+    'get_personality_instructions_for_llm',
+    'format_adult_response_with_personality',
+    'get_adult_system_status_summary'
 ]

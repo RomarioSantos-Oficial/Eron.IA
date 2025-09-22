@@ -315,6 +315,7 @@ class UserProfileDB:
             'bot_language': 'bot_language',
             'preferred_topics': 'preferred_topics',
             'bot_avatar': 'bot_avatar',
+            'has_mature_access': 'has_mature_access',
             'adult_intensity_level': 'adult_intensity_level',
             'adult_content_preferences': 'adult_content_preferences',
             'adult_interaction_style': 'adult_interaction_style',

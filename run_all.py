@@ -12,6 +12,7 @@ import os
 import sys
 import argparse
 import time
+import subprocess
 from datetime import datetime
 from dotenv import load_dotenv
 import atexit
@@ -19,10 +20,10 @@ import atexit
 # Banner visual
 def print_banner():
     print("=" * 80)
-    print("🤖 ERON.IA - SISTEMA UNIFICADO")
-    print("🌐 Web Interface + 📱 Telegram Bot")
+    print("ERON.IA - SISTEMA UNIFICADO")
+    print("Web Interface + Telegram Bot")
     print("=" * 80)
-    print(f"⏰ Iniciando às {datetime.now().strftime('%H:%M:%S')}")
+    print(f"Iniciando as {datetime.now().strftime('%H:%M:%S')}")
     print("=" * 80)
 
 # Adiciona a pasta raiz do projeto ao path
@@ -56,7 +57,7 @@ def detect_app_file():
     return None
 
 def detect_bot_file():
-    bot_files = ["simple_telegram_bot.py", "telegram_bot/bot_main.py", "telegram_bot.py"]
+    bot_files = ["telegram_bot/telegram_bot_original.py", "simple_telegram_bot.py", "telegram_bot/bot_main.py", "telegram_bot.py"]
     for file in bot_files:
         if os.path.exists(file):
             return file
@@ -64,13 +65,23 @@ def detect_bot_file():
 
 # Funções para rodar sistemas
 def run_web_app(app_file):
-    print("🔄 Iniciando Web App...")
+    print("Iniciando Web App...")
     time.sleep(2)
-    os.system(f'python "{app_file}"')
+    try:
+        subprocess.run([sys.executable, app_file], cwd=os.getcwd())
+    except Exception as e:
+        print(f"Erro ao executar Web App: {e}")
 
 def run_telegram_bot(bot_file):
-    print("🔄 Iniciando Telegram Bot...")
-    os.system(f'python "{bot_file}"')
+    print("Iniciando Telegram Bot...")
+    try:
+        if bot_file == "telegram_bot/telegram_bot_original.py":
+            # Executar como módulo para resolver importações
+            subprocess.run([sys.executable, "-m", "telegram_bot.telegram_bot_original"], cwd=os.getcwd())
+        else:
+            subprocess.run([sys.executable, bot_file], cwd=os.getcwd())
+    except Exception as e:
+        print(f"Erro ao executar Telegram Bot: {e}")
 
 
 def start_app():
@@ -108,31 +119,31 @@ def start_app():
     app_file = detect_app_file()
     bot_file = detect_bot_file()
     if not app_file:
-        print("❌ Erro: app.py não encontrado!")
+        print("Erro: app.py nao encontrado!")
         sys.exit(1)
     if not bot_file:
-        print("❌ Erro: Nenhum arquivo do bot Telegram encontrado!")
+        print("Erro: Nenhum arquivo do bot Telegram encontrado!")
         sys.exit(1)
 
-    print(f"✅ Usando app: {app_file}")
-    print(f"✅ Usando bot: {bot_file}")
+    print(f"Usando app: {app_file}")
+    print(f"Usando bot: {bot_file}")
 
-    print("🎯 FUNCIONALIDADES DISPONÍVEIS:")
+    print("FUNCIONALIDADES DISPONIVEIS:")
     print("  WEB (http://localhost:5000):")
-    print("    - 🏠 Dashboard principal (/)")
-    print("    - 👤 Sistema de usuários (/login, /register)")
-    print("    - 🔞 Sistema adulto (/adult/*)")
-    print("    - ⚙️  Configurações (/preferences)")
-    print("    - 📧 Sistema de email (/reset_password)")
+    print("    - Dashboard principal (/)")
+    print("    - Sistema de usuarios (/login, /register)")
+    print("    - Sistema adulto (/adult/*)")
+    print("    - Configuracoes (/preferences)")
+    print("    - Sistema de email (/reset_password)")
     print()
     print("  TELEGRAM:")
-    print("    - 💬 Chat normal (para menores)")
-    print("    - 🔞 /adult_mode (sistema adulto)")
-    print("    - ⚙️  /adult_config (configurações)")
-    print("    - 📚 /adult_train (treinamento)")
-    print("    - 📊 /adult_status (status)")
+    print("    - Chat normal (para menores)")
+    print("    - /adult_mode (sistema adulto)")
+    print("    - /adult_config (configuracoes)")
+    print("    - /adult_train (treinamento)")
+    print("    - /adult_status (status)")
     print()
-    print("🔄 Iniciando ambos os sistemas...")
+    print("Iniciando ambos os sistemas...")
     print()
 
     # Criar threads para executar ambos os sistemas
@@ -153,8 +164,8 @@ def start_app():
         telegram_thread.join()
         web_thread.join()
     except KeyboardInterrupt:
-        print("\n🛑 Encerrando sistema...")
-        print("✅ Sistema encerrado com sucesso!")
+        print("\nEncerrando sistema...")
+        print("Sistema encerrado com sucesso!")
 
 if __name__ == "__main__":
     start_app()

@@ -17,8 +17,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     from core.adult_personality_system import AdultPersonalitySystem
     from core.adult_vocabulary_trainer import AdultVocabularyTrainer, InteractiveTrainer
-    from telegram_bot.handlers.adult_integration import get_adult_personality_context
-    from src.user_profile_db import UserProfileDB
+    from core.user_profile_db import UserProfileDB
+    # Nota: get_adult_personality_context será importado quando necessário para evitar ciclo
+    get_adult_personality_context = None  
     HAS_ALL_MODULES = True
 except ImportError as e:
     print(f"Aviso: Algumas importações falharam - {e}")
@@ -36,6 +37,17 @@ except ImportError as e:
     AdultVocabularyTrainer = None
 
 adult_bp = Blueprint('adult', __name__, url_prefix='/adult')
+
+def get_telegram_adult_context(user_id):
+    """Import tardio para evitar ciclo circular"""
+    global get_adult_personality_context
+    if get_adult_personality_context is None:
+        try:
+            from telegram_bot import get_adult_personality_context
+        except ImportError:
+            return {'adult_mode': False, 'error': 'Sistema indisponível'}
+    
+    return get_adult_personality_context(user_id)
 
 class WebAdultSystem:
     """Sistema web integrado com funcionalidades adultas"""
@@ -339,7 +351,7 @@ def adult_chat():
         # Obter contexto adulto
         adult_context = ""
         if web_adult_system.personality_system:
-            adult_context = get_adult_personality_context(user_id)
+            adult_context = get_telegram_adult_context(user_id)
         
         # Gerar resposta com vocabulário melhorado
         enhanced_prompt = message

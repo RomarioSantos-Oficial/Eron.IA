@@ -18,6 +18,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from core.knowledge_base import KnowledgeBase
 from core.memory import EronMemory
 from learning.fast_learning import FastLearning
+from learning.human_conversation import HumanConversationSystem
+from learning.advanced_adult_learning import advanced_adult_learning
+from learning.super_fast_learning import super_learning
 from core.sensitive_memory import SensitiveMemory
 from core.check import AdultAccessSystem
 from core.adult_personality_system import adult_personality_system
@@ -32,6 +35,7 @@ load_dotenv()
 knowledge_base = KnowledgeBase(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database'))
 memory = EronMemory()
 fast_learning = FastLearning()
+human_conversation = HumanConversationSystem()
 sensitive_memory = SensitiveMemory()
 adult_system = AdultAccessSystem()
 email_service = EmailService()
@@ -54,7 +58,7 @@ app.user_profile_db = user_profile_db
 
 # Sistema adulto web integrado
 try:
-    from adult_routes import register_adult_routes
+    from web.adult_routes import register_adult_routes
     register_adult_routes(app)
     print("✅ Sistema Adulto Web integrado com sucesso")
     ADULT_SYSTEM_AVAILABLE = True
@@ -227,6 +231,43 @@ def get_llm_response(user_message, user_profile=None, user_id=None):
         # Se pergunta sobre MEU nome (do usuário) 
         elif any(phrase in message_lower for phrase in ['qual é meu nome', 'qual meu nome', 'como me chamo']):
             return f"Seu nome é {user_name}! 😊"
+        
+        # NOVO: Detecção de conversa casual/humana
+        # Para conversas simples, usar sistema mais humano e natural
+        conversation_type = human_conversation.detect_conversation_type(user_message)
+        casual_context = human_conversation.detect_casual_context(user_message)
+        is_simple_conversation = conversation_type in [
+            'greeting', 'wellbeing', 'gratitude', 'casual_question'
+        ]
+        
+        # Se for conversa simples E não for uma pergunta complexa, usar resposta humana
+        if is_simple_conversation and len(user_message.split()) < 15:
+            print(f"[DEBUG] Conversa simples detectada: {conversation_type} | Contexto: {casual_context}")
+            
+            # Usar sistema de conversação humana com templates casuais
+            if casual_context != 'general_casual':
+                human_response = human_conversation.get_casual_response_by_context(
+                    casual_context, user_profile
+                )
+            else:
+                human_response = human_conversation.generate_human_response(
+                    user_message, user_profile
+                )
+            
+            # Melhorar fluxo da conversa
+            human_response = human_conversation.enhance_conversation_flow(
+                user_message, human_response, user_profile
+            )
+            
+            # Adicionar calor humano
+            human_response = human_conversation.add_conversation_warmth(human_response)
+            
+            # Salvar na memória e retornar
+            if user_id:
+                memory.save_message(user_message, human_response, user_id)
+            
+            print(f"[DEBUG] Resposta humana gerada: {human_response[:100]}...")
+            return human_response
         
         # Verificar se a personalização está completa
         personalization_complete, missing_info = check_personalization_complete(user_profile)
@@ -408,29 +449,126 @@ IMPORTANTE SOBRE PERSONALIZAÇÃO:
         print(f"[DEBUG] Instruções FORÇADAS para IA:")
         print(personality_instructions)
 
-        # Verificar acesso a conteúdo sensível
+        # Verificar acesso a conteúdo sensível - DUPLA VERIFICAÇÃO
         has_mature_access = user_profile.get('has_mature_access', False) if user_profile else False
+        
+        # 🔧 CORREÇÃO CRÍTICA: Verificação dupla com sistema de sessões adultas
+        # Para garantir que desativações sejam respeitadas imediatamente
+        if has_mature_access and user_id:
+            try:
+                # Verificar diretamente o banco de dados da sessão adulta
+                import sqlite3
+                adult_db_path = os.path.join(os.path.dirname(__file__), '..', 'Eron-18', 'Scripts18', 'adult.db')
+                if os.path.exists(adult_db_path):
+                    conn = sqlite3.connect(adult_db_path)
+                    cursor = conn.cursor()
+                    
+                    # Verificar se existe sessão ativa
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM adult_sessions 
+                        WHERE user_id = ? AND is_active = 1 
+                        AND datetime(expires_at) > datetime('now')
+                    """, (str(user_id),))
+                    
+                    active_sessions = cursor.fetchone()[0]
+                    conn.close()
+                    
+                    if active_sessions == 0:
+                        print(f"[DEBUG] has_mature_access={has_mature_access} mas sem sessão ativa - corrigindo")
+                        has_mature_access = False
+                else:
+                    print("[DEBUG] Banco adult.db não encontrado - desativando modo adulto")
+                    has_mature_access = False
+                    
+            except Exception as e:
+                print(f"[DEBUG] Erro na verificação dupla de sessão adulta: {e}")
+                # Em caso de erro, ser conservador e desativar
+                has_mature_access = False
         
         if has_mature_access:
             print("[DEBUG] Usuário tem acesso adulto - usando sistema avançado")
             
-            # 🔥 NOVO SISTEMA AVANÇADO DE PERSONALIZAÇÃO ADULTA
+            # 🧠 SISTEMA SUPER LEARNING (MÁXIMA PRIORIDADE - APRENDE MAIS RÁPIDO)
             try:
-                adult_instructions = adult_personality_system.generate_personality_instructions(user_id)
-                if adult_instructions:
-                    print("[DEBUG] Instruções adultas avançadas geradas com sucesso")
-                    system_message = f"""{personality_instructions}
+                super_response = super_learning.generate_smart_response(
+                    user_message, user_id, user_profile.get('bot_personality', 'sedutora')
+                )
+                
+                if super_response and len(super_response) > 15:
+                    # Sistema super learning aprendendo automaticamente
+                    super_learning.learn_from_interaction(user_message, super_response, 0.85, user_id)
+                    print(f"[DEBUG] 🧠 Sistema Super Learning ativado: {super_response[:60]}...")
+                    response = super_response
+                    
+            except Exception as e:
+                print(f"[ERRO] Sistema Super Learning: {e}")
+            
+            # Se Super Learning não gerou resposta, usar sistema avançado
+            if not response:
+                # 🔥 NOVO SISTEMA AVANÇADO SEM FILTROS
+                try:
+                    # Usar sistema de aprendizagem adulta avançado
+                    advanced_response = advanced_adult_learning.generate_dynamic_response(
+                        user_id, user_message, {'profile': user_profile, 'emotion': user_emotion}
+                    )
+                    
+                    if advanced_response:
+                        # Salvar interação para aprendizagem
+                        advanced_adult_learning.learn_from_interaction(
+                            user_id, user_message, advanced_response
+                        )
+                        
+                        print("[DEBUG] Sistema avançado adulto gerou resposta personalizada")
+                        response = advanced_response
+                    else:
+                        # Fallback para sistema adulto original
+                        adult_instructions = adult_personality_system.generate_personality_instructions(user_id)
+                        if adult_instructions:
+                            print("[DEBUG] Instruções adultas avançadas geradas com sucesso")
+                            system_message = f"""{personality_instructions}
 
 {adult_instructions}
 
 Estado Emocional Atual: {bot_emotion_state['emotion'] if bot_emotion_state else 'neutro'}
 Intensidade: {bot_emotion_state['intensity'] if bot_emotion_state else 1}
 Emoção Detectada do Usuário: {user_emotion if user_emotion else 'desconhecida'}"""
-                else:
-                    raise Exception("Sistema avançado não disponível")
-                    
-            except Exception as e:
-                print(f"[DEBUG] Erro no sistema avançado: {e}. Usando sistema básico (fallback)")
+                            
+                            # Chamar API do LM Studio
+                            headers = {"Content-Type": "application/json"}
+                            data = {
+                                "model": "qwen2.5-4b-instruct",
+                                "messages": [{"role": "system", "content": system_message}, {"role": "user", "content": user_message}],
+                                "temperature": 0.8,
+                                "max_tokens": 500,
+                                "stream": False
+                            }
+                            
+                            api_response = requests.post(api_url, headers=headers, json=data, timeout=30)
+                            if api_response.status_code == 200:
+                                response = api_response.json()['choices'][0]['message']['content'].strip()
+                            else:
+                                response = "Desculpe, não consegui processar sua mensagem no momento..."
+                        else:
+                            # Usar sistema padrão com instruções básicas
+                            headers = {"Content-Type": "application/json"}
+                            data = {
+                                "model": "qwen2.5-4b-instruct",
+                                "messages": [{"role": "system", "content": personality_instructions}, {"role": "user", "content": user_message}],
+                                "temperature": 0.8,
+                                "max_tokens": 500,
+                                "stream": False
+                            }
+                        
+                        api_response = requests.post(api_url, headers=headers, json=data, timeout=30)
+                        if api_response.status_code == 200:
+                            response = api_response.json()['choices'][0]['message']['content'].strip()
+                        else:
+                            response = "Sistema avançado temporariamente indisponível..."
+                
+                except Exception as e:
+                    print(f"[DEBUG] Erro no sistema adulto avançado: {e}")
+                    # Fallback para sistema padrão adulto básico
+                    print("[DEBUG] Usando sistema adulto básico como fallback")
                 
                 # 📋 SISTEMA BÁSICO COMO FALLBACK
                 adult_intensity = user_profile.get('adult_intensity_level', 1)
@@ -1281,7 +1419,7 @@ def handle_age_verification():
         # Atualizar idade para 18+
         from core.user_profile_db import UserProfileDB
         user_db = UserProfileDB()
-        user_db.update_user_profile(user_id, user_age="18+")
+        user_db.update_profile(user_id, user_age="18+")
         
         if adult_mode_requested:
             # Ativar modo adulto
@@ -1297,7 +1435,7 @@ def handle_age_verification():
         # Atualizar idade para menor de 18
         from core.user_profile_db import UserProfileDB
         user_db = UserProfileDB()
-        user_db.update_user_profile(user_id, user_age="<18")
+        user_db.update_profile(user_id, user_age="<18")
         flash('✅ Idade registrada. Funcionalidades adequadas foram configuradas.', 'info')
     
     return redirect(url_for('personalizar'))
