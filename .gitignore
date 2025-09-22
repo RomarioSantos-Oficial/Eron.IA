@@ -117,6 +117,61 @@ sensitive_memory.db
 sensitive/
 
 # ====================
+# TOKENS E CREDENCIAIS
+# ====================
+# Token do Telegram Bot
+token.txt
+telegram_token.txt
+bot_token.txt
+TELEGRAM_TOKEN*
+
+# Credenciais de Email/SMTP
+smtp_config.json
+mail_config.json
+email_credentials.txt
+EMAIL_PASSWORD*
+MAIL_PASSWORD*
+
+# Chaves secretas do Flask
+SECRET_KEY*
+flask_secret.txt
+
+# URLs de APIs privadas
+api_config.json
+LM_STUDIO_URL*
+
+# Arquivos de autenticação OAuth
+oauth_tokens.json
+*.oauth
+client_secret*.json
+
+# Certificados e chaves SSL/TLS
+*.crt
+*.pem
+*.p12
+*.pfx
+*.private
+*_private.key
+private_key.*
+
+# ====================
+# DADOS DE PRODUÇÃO
+# ====================
+# Arquivos de produção específicos
+production.env
+prod_config.json
+*.prod
+
+# Dados de monitoramento
+monitoring/
+metrics/
+analytics/
+
+# Arquivos de deploy
+deploy_keys/
+deployment.json
+
+# ====================
 # SISTEMA OPERACIONAL
 # ====================
 # Windows
@@ -152,12 +207,8 @@ Icon?
 *.sublime-project
 *.sublime-workspace
 
-# ====================
-# TELEGRAM BOT
-# ====================
-# Token do bot (se armazenado em arquivo)
-bot_token.txt
-telegram_token.txt
+# Jupyter
+.ipynb_checkpoints/
 
 # ====================
 # WEB APPLICATION
@@ -171,19 +222,26 @@ uploads/
 static/uploads/
 user_uploads/
 
-# ====================
-# CERTIFICADOS E CHAVES
-# ====================
-# Certificados SSL
-*.crt
-*.pem
-*.p12
-*.pfx
+# Cache de templates
+template_cache/
+jinja2_cache/
 
-# Chaves privadas
-*.private
-*_private.key
-private_key.*
+# ====================
+# ARQUIVOS DE DESENVOLVIMENTO
+# ====================
+# Arquivos de teste locais
+test_local.py
+debug_*.py
+temp_test_*.py
+
+# Configurações locais de desenvolvimento
+local_settings.py
+dev_config.json
+
+# Arquivos de debug
+debug.log
+error.log
+access.log
 
 # ====================
 # EXEMPLOS QUE DEVEM SER MANTIDOS
@@ -191,3 +249,29 @@ private_key.*
 # Manter exemplos genéricos (sem dados reais)
 !exemplos/conversas_normais.csv
 !exemplos/*.example
+!configs/.env.example
+!configs/requirements-dev.txt
+
+# Manter documentação e guides
+!docs/
+!README.md
+!LICENSE*
+
+# ====================
+# COMENTÁRIOS E OBSERVAÇÕES
+# ====================
+# Este .gitignore protege:
+# 1. Todos os dados pessoais dos usuários
+# 2. Tokens e credenciais de API
+# 3. Chaves de criptografia
+# 4. Configurações de produção
+# 5. Logs com informações sensíveis
+# 6. Backups e arquivos temporários
+# 7. Uploads de usuários
+# 8. Sessões e cookies
+# 
+# SEMPRE VERIFIQUE antes de fazer commit:
+# - Não existem arquivos .env no repositório
+# - Não existem tokens em texto plano
+# - Não existem senhas ou credenciais
+# - Não existem dados pessoais de usuários
