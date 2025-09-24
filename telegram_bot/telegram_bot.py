@@ -1,8 +1,13 @@
 import os
+import sys
 import logging
 from datetime import datetime, date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, ConversationHandler, CallbackQueryHandler, filters
+
+# Adiciona o diretório raiz ao path para importações
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from core.memory import EronMemory
 from core.preferences import PreferencesManager
 from core.emotion_system import EmotionSystem
@@ -657,42 +662,77 @@ async def handle_bot_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_bot_name_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Processa a seleção de nome baseada no gênero"""
-    query = update.callback_query
-    user_id = str(update.effective_user.id)
-    user_profile_db = context.application.user_profile_db
-    
-    if query.data == 'bot_name_custom':
-        # Usuário quer digitar nome personalizado
-        await query.answer("Digite o nome desejado")
+    try:
+        print(f"[DEBUG BOT_NAME] ============ INICIANDO handle_bot_name_selection ============")
+        query = update.callback_query
+        user_id = str(update.effective_user.id)
+        user_profile_db = context.application.user_profile_db
+        
+        print(f"[DEBUG BOT_NAME] callback_data: {query.data}")
+        print(f"[DEBUG BOT_NAME] user_id: {user_id}")
+        print(f"[DEBUG BOT_NAME] query object: {query}")
+        
+        # SEMPRE responder o callback primeiro para evitar timeout
+        await query.answer()
+        print(f"[DEBUG BOT_NAME] Callback respondido imediatamente")
+        
+        if query.data == 'bot_name_custom':
+            # Usuário quer digitar nome personalizado
+            await query.edit_message_text(
+                "✏️ **Digite o nome que você quer para mim:**\n\n"
+                "💡 *Pode ser qualquer nome que preferir*"
+            )
+            context.user_data['personalization_step'] = 'bot_name_input'
+            print(f"[DEBUG BOT_NAME] Nome customizado solicitado")
+            # Retornar para um estado que aceita texto
+            return GET_BOT_NAME
+        
+        # Extrair nome do callback_data
+        bot_name = query.data.replace('bot_name_', '')
+        print(f"[DEBUG BOT_NAME] Nome extraído: '{bot_name}'")
+        
+        # Salvar nome do bot
+        print(f"[DEBUG BOT_NAME] Salvando perfil com user_id={user_id}, bot_name={bot_name}")
+        user_profile_db.save_profile(user_id=user_id, bot_name=bot_name)
+        print(f"[DEBUG BOT_NAME] Nome {bot_name} salvo no banco com sucesso")
+        
+        # Verificar se salvou corretamente
+        profile_check = user_profile_db.get_profile(user_id)
+        print(f"[DEBUG BOT_NAME] Verificação - perfil após salvar: {profile_check}")
+        
         await query.edit_message_text(
-            "✏️ **Digite o nome que você quer para mim:**\n\n"
-            "💡 *Pode ser qualquer nome que preferir*"
+            f"✅ **Perfeito! Agora me chamo {bot_name}!**\n\n"
+            "🎭 **Qual personalidade você prefere que eu tenha?**\n\n"
+            "💡 *Isso define como eu vou interagir com você:*",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("😊 Amigável", callback_data='personality_amigável')],
+                [InlineKeyboardButton("🎩 Formal", callback_data='personality_formal')],
+                [InlineKeyboardButton("😎 Casual", callback_data='personality_casual')],
+                [InlineKeyboardButton("🎭 Divertido", callback_data='personality_divertido')],
+                [InlineKeyboardButton("🧠 Intelectual", callback_data='personality_intelectual')]
+            ])
         )
-        context.user_data['personalization_step'] = 'bot_name_input'
-        return
-    
-    # Extrair nome do callback_data
-    bot_name = query.data.replace('bot_name_', '')
-    
-    # Salvar nome do bot
-    user_profile_db.save_profile(user_id=user_id, bot_name=bot_name)
-    
-    await query.answer(f"✅ Nome {bot_name} definido!")
-    
-    await query.edit_message_text(
-        f"✅ **Perfeito! Agora me chamo {bot_name}!**\n\n"
-        "🎭 **Qual personalidade você prefere que eu tenha?**\n\n"
-        "💡 *Isso define como eu vou interagir com você:*",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("😊 Amigável", callback_data='personality_amigável')],
-            [InlineKeyboardButton("🎩 Formal", callback_data='personality_formal')],
-            [InlineKeyboardButton("😎 Casual", callback_data='personality_casual')],
-            [InlineKeyboardButton("🎭 Divertido", callback_data='personality_divertido')],
-            [InlineKeyboardButton("🧠 Intelectual", callback_data='personality_intelectual')]
-        ])
-    )
-    
-    context.user_data['personalization_step'] = 'bot_personality'
+        print(f"[DEBUG BOT_NAME] Mensagem de personalidade enviada com sucesso")
+        
+        context.user_data['personalization_step'] = 'bot_personality'
+        print(f"[DEBUG BOT_NAME] Step atualizado para 'bot_personality'")
+        print(f"[DEBUG BOT_NAME] ============ FIM handle_bot_name_selection ============")
+        
+        # CRÍTICO: Retornar o estado correto para o ConversationHandler
+        return SELECT_PERSONALITY
+        
+    except Exception as e:
+        print(f"[ERROR BOT_NAME] Erro em handle_bot_name_selection: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            await query.answer("❌ Erro interno")
+            await query.edit_message_text(
+                "❌ **Erro interno**\n\n"
+                "Ocorreu um erro ao processar sua seleção. Tente novamente ou use /start."
+            )
+        except Exception as inner_e:
+            print(f"[ERROR BOT_NAME] Erro ao enviar mensagem de erro: {inner_e}")
 
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
@@ -4593,7 +4633,8 @@ def main(application, user_profile_db):
             ],
             GET_BOT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_bot_name)],
             GET_BOT_GENDER: [
-                CallbackQueryHandler(process_bot_gender, pattern='^bot_gender_')
+                CallbackQueryHandler(process_bot_gender, pattern='^bot_gender_'),
+                CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_')
             ],
             SELECT_PERSONALITY: [
                 CallbackQueryHandler(handle_personality_selection, pattern='^personality_')
@@ -4707,13 +4748,22 @@ def main(application, user_profile_db):
     application.add_handler(CommandHandler("personalizar", start_personalization_menu))
     application.add_handler(CommandHandler("menu", menu_command))
     
-    # Handler global para callbacks de personalização e outros
+    # ⚠️ HANDLERS ESPECÍFICOS PRIMEIRO (maior prioridade)
+    # Handler específico para seleção de nomes do bot (alta prioridade) 
+    application.add_handler(CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_Ana$'))
+    application.add_handler(CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_Beatriz$'))
+    application.add_handler(CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_Clara$'))
+    application.add_handler(CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_Maria$'))
+    application.add_handler(CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_Sofia$'))
+    application.add_handler(CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_.*$'))
+    
+    # Handler global para outros callbacks 
     application.add_handler(CallbackQueryHandler(handle_global_callbacks))
     
     # Handler para entrada de texto durante personalização
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_personalization_text))
     
-    # Outros handlers existentes
+    # ConversationHandler vem por último
     application.add_handler(personalization_handler)
     # conv_handler removido - usando novo sistema
     application.add_handler(change_user_age_handler)

@@ -57,7 +57,7 @@ def detect_app_file():
     return None
 
 def detect_bot_file():
-    bot_files = ["telegram_bot/telegram_bot_original.py", "simple_telegram_bot.py", "telegram_bot/bot_main.py", "telegram_bot.py"]
+    bot_files = ["telegram_bot/telegram_bot.py", "simple_telegram_bot.py", "telegram_bot.py"]
     for file in bot_files:
         if os.path.exists(file):
             return file
@@ -75,9 +75,9 @@ def run_web_app(app_file):
 def run_telegram_bot(bot_file):
     print("Iniciando Telegram Bot...")
     try:
-        if bot_file == "telegram_bot/telegram_bot_original.py":
+        if bot_file == "telegram_bot/telegram_bot.py":
             # Executar como módulo para resolver importações
-            subprocess.run([sys.executable, "-m", "telegram_bot.telegram_bot_original"], cwd=os.getcwd())
+            subprocess.run([sys.executable, "-m", "telegram_bot.telegram_bot"], cwd=os.getcwd())
         else:
             subprocess.run([sys.executable, bot_file], cwd=os.getcwd())
     except Exception as e:

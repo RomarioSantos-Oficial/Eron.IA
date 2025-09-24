@@ -13,7 +13,7 @@ Testando 800+ respo    # Teste de integração
     
     try:
         # Verificar se o bot consegue acessar
-        from telegram_bot.telegram_bot_original import main as bot_main
+        from telegram_bot.telegram_bot import main as bot_main
         print('✅ Integração com telegram_bot: OK')
     except Exception as e:
         print(f'⚠️  Integração telegram: {str(e)}')tegradas

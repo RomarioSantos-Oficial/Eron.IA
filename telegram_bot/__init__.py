@@ -4,7 +4,7 @@ Módulo principal do bot Telegram
 """
 
 # Importações do sistema principal funcional
-from .telegram_bot_original import (
+from .telegram_bot import (
     get_adult_personality_context,
     is_advanced_adult_active,
     get_personality_instructions_for_llm,
