@@ -79,10 +79,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Variáveis globais para sistema sequencial
-sequential_setup_data = {}  # Dados temporários durante configuração sequencial
-sequential_step = {}  # Controla etapa atual da configuração
-adult_access = {}  # Controla acesso a funcionalidades adultas
+# Estado de usuários agora gerenciado via context.user_data para thread-safety
+# Removidas variáveis globais problemáticas: sequential_setup_data, sequential_step, adult_access
 
 # Instância da memória de conversa (mantém-se local)
 memory = EronMemory()
@@ -565,7 +563,7 @@ async def handle_initial_bot_name_selection(update: Update, context: ContextType
             "⚠️ *Evite nomes muito longos ou complicados*"
         )
         context.user_data['personalization_step'] = 'bot_name'
-        return
+        return GET_BOT_NAME
     
     name_mapping = {
         'joana': 'Joana',
@@ -592,6 +590,7 @@ async def handle_initial_bot_name_selection(update: Update, context: ContextType
             ])
         )
         context.user_data['personalization_step'] = 'bot_gender'
+        return GET_BOT_GENDER
 
 async def handle_bot_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Processa gênero do bot e oferece nomes apropriados"""
@@ -847,7 +846,7 @@ async def menu_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = user_data.get('user_name', update.effective_user.first_name)
     user_age = user_data.get('user_age', 'Não definida')
     bot_name = user_data.get('bot_name', 'Eron')
-    is_adult = adult_access.get(user_id, False)
+    is_adult = context.user_data.get('adult_access', False)
     
     # Verificar se está configurado
     is_configured = all(key in user_data for key in ['user_name', 'user_age', 'user_gender', 'bot_name', 'bot_gender', 'personality'])
@@ -908,8 +907,8 @@ async def start_sequential_setup(update: Update, context: ContextTypes.DEFAULT_T
     user_id = update.effective_user.id
     
     # Inicializar dados
-    sequential_setup_data[user_id] = {}
-    sequential_step[user_id] = SEQUENCIAL_USER_NAME
+    context.user_data['sequential_setup_data'] = {}
+    context.user_data['sequential_step'] = SEQUENCIAL_USER_NAME
     
     if update.callback_query:
         query = update.callback_query
@@ -933,14 +932,16 @@ async def handle_sequential_setup_text(update: Update, context: ContextTypes.DEF
     user_id = update.effective_user.id
     message_text = update.message.text.strip()
     
-    if user_id not in sequential_step:
+    if 'sequential_step' not in context.user_data:
         return
-    
-    current_step = sequential_step[user_id]
+
+    current_step = context.user_data['sequential_step']
     
     if current_step == SEQUENCIAL_USER_NAME:
         # Etapa 1: Nome do usuário
-        sequential_setup_data[user_id]['user_name'] = message_text
+        if 'sequential_setup_data' not in context.user_data:
+            context.user_data['sequential_setup_data'] = {}
+        context.user_data['sequential_setup_data']['user_name'] = message_text
         
         keyboard = [
             [InlineKeyboardButton("👨 Homem", callback_data="seq_gender_masculino")],
@@ -954,7 +955,7 @@ async def handle_sequential_setup_text(update: Update, context: ContextTypes.DEF
 **2. Qual é seu gênero?**
 Isso me ajuda a personalizar melhor nossa conversa:"""
         
-        sequential_step[user_id] = SEQUENCIAL_USER_GENDER
+        context.user_data['sequential_step'] = SEQUENCIAL_USER_GENDER
         await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
         
     elif current_step == SEQUENCIAL_USER_AGE_DAY:
@@ -962,8 +963,8 @@ Isso me ajuda a personalizar melhor nossa conversa:"""
         try:
             day = int(message_text)
             if 1 <= day <= 31:
-                sequential_setup_data[user_id]['birth_day'] = day
-                sequential_step[user_id] = SEQUENCIAL_USER_AGE_MONTH
+                context.user_data['sequential_setup_data']['birth_day'] = day
+                context.user_data['sequential_step'] = SEQUENCIAL_USER_AGE_MONTH
                 await update.message.reply_text(f"✅ **Dia: {day}**\n\n**Agora o mês (1-12):**", parse_mode='Markdown')
             else:
                 await update.message.reply_text("❌ **Dia inválido!** Digite um número entre 1 e 31:")
@@ -975,8 +976,8 @@ Isso me ajuda a personalizar melhor nossa conversa:"""
         try:
             month = int(message_text)
             if 1 <= month <= 12:
-                sequential_setup_data[user_id]['birth_month'] = month
-                sequential_step[user_id] = SEQUENCIAL_USER_AGE_YEAR
+                context.user_data['sequential_setup_data']['birth_month'] = month
+                context.user_data['sequential_step'] = SEQUENCIAL_USER_AGE_YEAR
                 await update.message.reply_text(f"✅ **Mês: {month}**\n\n**Agora o ano (ex: 1990):**", parse_mode='Markdown')
             else:
                 await update.message.reply_text("❌ **Mês inválido!** Digite um número entre 1 e 12:")
@@ -989,18 +990,18 @@ Isso me ajuda a personalizar melhor nossa conversa:"""
             year = int(message_text)
             if 1900 <= year <= 2025:
                 # Calcular idade
-                birth_date = date(year, sequential_setup_data[user_id]['birth_month'], sequential_setup_data[user_id]['birth_day'])
+                birth_date = date(year, context.user_data['sequential_setup_data']['birth_month'], context.user_data['sequential_setup_data']['birth_day'])
                 today = date.today()
                 age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
                 
-                sequential_setup_data[user_id]['birth_year'] = year
-                sequential_setup_data[user_id]['user_age'] = age
+                context.user_data['sequential_setup_data']['birth_year'] = year
+                context.user_data['sequential_setup_data']['user_age'] = age
                 
                 # Verificar se é maior de idade
                 is_adult = age >= 18
-                sequential_setup_data[user_id]['is_adult'] = is_adult
+                context.user_data['sequential_setup_data']['is_adult'] = is_adult
                 if is_adult:
-                    adult_access[user_id] = True
+                    context.user_data['adult_access'] = True
                 
                 # Avançar para escolha do gênero do bot
                 keyboard = [
@@ -1019,7 +1020,7 @@ Isso me ajuda a personalizar melhor nossa conversa:"""
 **4. Como você gostaria que eu fosse?**
 Escolha o gênero do seu assistente virtual:"""
                 
-                sequential_step[user_id] = SEQUENCIAL_BOT_GENDER
+                context.user_data['sequential_step'] = SEQUENCIAL_BOT_GENDER
                 await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
                 
             else:
@@ -1030,23 +1031,23 @@ Escolha o gênero do seu assistente virtual:"""
     elif current_step == SEQUENCIAL_BOT_NAME:
         # Etapa 5: Nome personalizado do bot
         bot_name = message_text
-        sequential_setup_data[user_id]['bot_name'] = bot_name
-        await show_sequential_personality_selection(update, user_id)
+        context.user_data['sequential_setup_data']['bot_name'] = bot_name
+        await show_sequential_personality_selection(update, context, user_id)
         
     elif current_step == SEQUENCIAL_PERSONALITY:
         # Personalidade customizada
-        sequential_setup_data[user_id]['personality'] = message_text
-        await show_sequential_language_selection(update, user_id)
+        context.user_data['sequential_setup_data']['personality'] = message_text
+        await show_sequential_language_selection(update, context, user_id)
         
     elif current_step == SEQUENCIAL_LANGUAGE:
         # Estilo customizado
-        sequential_setup_data[user_id]['language_style'] = message_text
+        context.user_data['sequential_setup_data']['language_style'] = message_text
         await finish_sequential_setup(update, context, user_id)
 
-async def show_sequential_personality_selection(update: Update, user_id: int):
+async def show_sequential_personality_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id: int):
     """Mostrar seleção de personalidade na configuração sequencial"""
-    bot_name = sequential_setup_data[user_id]['bot_name']
-    is_adult = sequential_setup_data[user_id].get('is_adult', False)
+    bot_name = context.user_data['sequential_setup_data']['bot_name']
+    is_adult = context.user_data['sequential_setup_data'].get('is_adult', False)
     
     keyboard = [
         [InlineKeyboardButton("😊 Amigável", callback_data="seq_personality_amigavel"),
@@ -1069,10 +1070,10 @@ async def show_sequential_personality_selection(update: Update, user_id: int):
 **6. Que personalidade você quer que eu tenha?**
 Isso define como eu me comporto e respondo:"""
     
-    sequential_step[user_id] = SEQUENCIAL_PERSONALITY
+    context.user_data['sequential_step'] = SEQUENCIAL_PERSONALITY
     await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
-async def show_sequential_language_selection(update: Update, user_id: int):
+async def show_sequential_language_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id: int):
     """Mostrar seleção de estilo de linguagem na configuração sequencial"""
     keyboard = [
         [InlineKeyboardButton("🗣️ Formal", callback_data="seq_language_formal"),
@@ -1087,12 +1088,12 @@ async def show_sequential_language_selection(update: Update, user_id: int):
     message = """**7. Como você quer que eu fale?**
 Escolha meu estilo de comunicação:"""
     
-    sequential_step[user_id] = SEQUENCIAL_LANGUAGE
+    context.user_data['sequential_step'] = SEQUENCIAL_LANGUAGE
     await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def finish_sequential_setup(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id: int):
     """Finalizar configuração sequencial"""
-    setup_data = sequential_setup_data[user_id]
+    setup_data = context.user_data['sequential_setup_data']
     
     # Salvar todas as configurações no user_data
     context.user_data.update({
@@ -1109,14 +1110,14 @@ async def finish_sequential_setup(update: Update, context: ContextTypes.DEFAULT_
     })
     
     # Limpar dados temporários
-    if user_id in sequential_step:
-        del sequential_step[user_id]
-    if user_id in sequential_setup_data:
-        del sequential_setup_data[user_id]
+    if 'sequential_step' in context.user_data:
+        del context.user_data['sequential_step']
+    if 'sequential_setup_data' in context.user_data:
+        del context.user_data['sequential_setup_data']
     
     # Mensagem de conclusão
     config = context.user_data
-    adult_status = "🔓 Sistema adulto liberado" if adult_access.get(user_id, False) else "🔒 Sistema padrão"
+    adult_status = "🔓 Sistema adulto liberado" if context.user_data.get('adult_access', False) else "🔒 Sistema padrão"
     
     keyboard = [
         [InlineKeyboardButton("💬 Começar a Conversar", callback_data="start_conversation")],
@@ -1160,7 +1161,7 @@ async def handle_sequential_callbacks(update: Update, context: ContextTypes.DEFA
     if data.startswith("seq_gender_"):
         # Etapa 2: Gênero do usuário
         gender = data.replace("seq_gender_", "")
-        sequential_setup_data[user_id]['user_gender'] = gender
+        context.user_data['sequential_setup_data']['user_gender'] = gender
         
         gender_display = {"masculino": "👨 Homem", "feminino": "👩 Mulher", "outro": "🌟 Outro"}[gender]
         
@@ -1171,13 +1172,13 @@ Preciso saber sua idade para personalizar melhor a experiência.
 
 **Primeiro, digite o dia (1-31):**"""
         
-        sequential_step[user_id] = SEQUENCIAL_USER_AGE_DAY
+        context.user_data['sequential_step'] = SEQUENCIAL_USER_AGE_DAY
         await query.edit_message_text(message, parse_mode='Markdown')
         
     elif data.startswith("seq_bot_gender_"):
         # Etapa 4: Gênero do bot
         bot_gender = data.replace("seq_bot_gender_", "")
-        sequential_setup_data[user_id]['bot_gender'] = bot_gender
+        context.user_data['sequential_setup_data']['bot_gender'] = bot_gender
         
         # Sugerir nomes baseados no gênero
         suggestions = {
@@ -1209,17 +1210,17 @@ Aqui estão algumas sugestões, ou você pode escolher outro nome:"""
     elif data.startswith("seq_bot_name_"):
         # Etapa 5: Nome do bot
         if data == "seq_bot_name_custom":
-            sequential_step[user_id] = SEQUENCIAL_BOT_NAME
+            context.user_data['sequential_step'] = SEQUENCIAL_BOT_NAME
             await query.edit_message_text("✍️ **Digite o nome que você quer me dar:**", parse_mode='Markdown')
         else:
             bot_name = data.replace("seq_bot_name_", "")
-            sequential_setup_data[user_id]['bot_name'] = bot_name
+            context.user_data['sequential_setup_data']['bot_name'] = bot_name
             await show_sequential_personality_selection_callback(query, user_id)
             
     elif data.startswith("seq_personality_"):
         # Etapa 6: Personalidade
         if data == "seq_personality_custom":
-            sequential_step[user_id] = SEQUENCIAL_PERSONALITY
+            context.user_data['sequential_step'] = SEQUENCIAL_PERSONALITY
             await query.edit_message_text("✍️ **Descreva como você quer que eu seja:**\n(Ex: 'Seja engraçado e use muitas piadas')", parse_mode='Markdown')
         else:
             personality = data.replace("seq_personality_", "")
@@ -1232,13 +1233,13 @@ Aqui estão algumas sugestões, ou você pode escolher outro nome:"""
                 "romantico": "💕 Romântico"
             }[personality]
             
-            sequential_setup_data[user_id]['personality'] = personality_display
+            context.user_data['sequential_setup_data']['personality'] = personality_display
             await show_sequential_language_selection_callback(query, user_id)
             
     elif data.startswith("seq_language_"):
         # Etapa 7: Estilo de linguagem
         if data == "seq_language_custom":
-            sequential_step[user_id] = SEQUENCIAL_LANGUAGE
+            context.user_data['sequential_step'] = SEQUENCIAL_LANGUAGE
             await query.edit_message_text("✍️ **Como você quer que eu fale?**\n(Ex: 'Fale de forma descontraída com gírias jovens')", parse_mode='Markdown')
         else:
             style = data.replace("seq_language_", "")
@@ -1249,13 +1250,13 @@ Aqui estão algumas sugestões, ou você pode escolher outro nome:"""
                 "tecnico": "🎓 Técnico"
             }[style]
             
-            sequential_setup_data[user_id]['language_style'] = style_display
+            context.user_data['sequential_setup_data']['language_style'] = style_display
             await finish_sequential_setup_callback(query, context, user_id)
 
-async def show_sequential_personality_selection_callback(query, user_id: int):
+async def show_sequential_personality_selection_callback(query, context: ContextTypes.DEFAULT_TYPE, user_id: int):
     """Mostrar seleção de personalidade via callback"""
-    bot_name = sequential_setup_data[user_id]['bot_name']
-    is_adult = sequential_setup_data[user_id].get('is_adult', False)
+    bot_name = context.user_data['sequential_setup_data']['bot_name']
+    is_adult = context.user_data['sequential_setup_data'].get('is_adult', False)
     
     keyboard = [
         [InlineKeyboardButton("😊 Amigável", callback_data="seq_personality_amigavel"),
@@ -1298,7 +1299,7 @@ Escolha meu estilo de comunicação:"""
 
 async def finish_sequential_setup_callback(query, context: ContextTypes.DEFAULT_TYPE, user_id: int):
     """Finalizar configuração via callback"""
-    setup_data = sequential_setup_data[user_id]
+    setup_data = context.user_data['sequential_setup_data']
     
     # Salvar configurações
     context.user_data.update({
@@ -1315,14 +1316,14 @@ async def finish_sequential_setup_callback(query, context: ContextTypes.DEFAULT_
     })
     
     # Limpar dados temporários
-    if user_id in sequential_step:
-        del sequential_step[user_id]
-    if user_id in sequential_setup_data:
-        del sequential_setup_data[user_id]
+    if 'sequential_step' in context.user_data:
+        del context.user_data['sequential_step']
+    if 'sequential_setup_data' in context.user_data:
+        del context.user_data['sequential_setup_data']
     
     # Mensagem de conclusão
     config = context.user_data
-    adult_status = "🔓 Sistema adulto liberado" if adult_access.get(user_id, False) else "🔒 Sistema padrão"
+    adult_status = "🔓 Sistema adulto liberado" if context.user_data.get('adult_access', False) else "🔒 Sistema padrão"
     
     keyboard = [
         [InlineKeyboardButton("💬 Começar a Conversar", callback_data="start_conversation")],
@@ -4260,7 +4261,7 @@ async def handle_personalization_text(update: Update, context: ContextTypes.DEFA
     user_id = str(update.effective_user.id)
     
     # Verificar se está no sistema sequencial
-    if user_id in sequential_step and sequential_step[user_id] in [
+    if 'sequential_step' in context.user_data and context.user_data['sequential_step'] in [
         SEQUENCIAL_USER_NAME, SEQUENCIAL_USER_GENDER, SEQUENCIAL_USER_AGE_DAY, SEQUENCIAL_USER_AGE_MONTH, SEQUENCIAL_USER_AGE_YEAR,
         SEQUENCIAL_BOT_GENDER, SEQUENCIAL_BOT_NAME, SEQUENCIAL_PERSONALITY, SEQUENCIAL_LANGUAGE
     ]:
@@ -4634,7 +4635,8 @@ def main(application, user_profile_db):
             GET_BOT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_bot_name)],
             GET_BOT_GENDER: [
                 CallbackQueryHandler(process_bot_gender, pattern='^bot_gender_'),
-                CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_')
+                CallbackQueryHandler(handle_bot_name_selection, pattern='^bot_name_'),
+                CallbackQueryHandler(handle_initial_bot_name_selection, pattern='^initial_bot_name_')
             ],
             SELECT_PERSONALITY: [
                 CallbackQueryHandler(handle_personality_selection, pattern='^personality_')

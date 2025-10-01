@@ -645,8 +645,9 @@ Regras para Conteúdo:
 
 Você é um assistente amigável. Mantenha todas as interações apropriadas para menores de idade, evitando qualquer conteúdo sexual ou sugestivo."""
 
-        # Adicionar instruções de estilo ao system_message
-        system_message = system_message + style_instructions
+        # Adicionar instruções de estilo ao system_message se existirem
+        if 'style_instructions' in locals() and style_instructions:
+            system_message = system_message + style_instructions
 
         headers = {"Content-Type": "application/json"}
         payload = {
