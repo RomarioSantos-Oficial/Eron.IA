@@ -498,7 +498,7 @@ IMPORTANTE SOBRE PERSONALIZAÇÃO:
                     # Sistema super learning aprendendo automaticamente
                     super_learning.learn_from_interaction(user_message, super_response, 0.85, user_id)
                     print(f"[DEBUG] 🧠 Sistema Super Learning ativado: {super_response[:60]}...")
-                    response = super_response
+                    return super_response  # Retorna diretamente sem precisar de system_message
                     
             except Exception as e:
                 print(f"[ERRO] Sistema Super Learning: {e}")
@@ -641,12 +641,24 @@ Regras para Conteúdo:
    - Siga o estilo de interação preferido
    - Crie um ambiente confortável e consensual"""
         else:
+            # Definir system_message para usuários sem acesso adulto
             system_message = f"""{personality_instructions}
 
 Você é um assistente amigável. Mantenha todas as interações apropriadas para menores de idade, evitando qualquer conteúdo sexual ou sugestivo."""
 
-        # Adicionar instruções de estilo ao system_message se existirem
-        if 'style_instructions' in locals() and style_instructions:
+        # Definir instruções de estilo baseadas na linguagem do bot
+        style_mapping = {
+            'formal': "\n\n🎭 ESTILO: Use linguagem mais formal e respeitosa.",
+            'coloquial': "\n\n🎭 ESTILO: Use linguagem descontraída e informal.",
+            'técnico': "\n\n🎭 ESTILO: Use termos técnicos quando apropriado.",
+            'amigável': "\n\n🎭 ESTILO: Seja caloroso e amigável nas respostas.",
+            'informal': "\n\n🎭 ESTILO: Use linguagem descontraída e informal."
+        }
+        
+        style_instructions = style_mapping.get(bot_language, "")
+        
+        # Adicionar instruções de estilo ao system_message
+        if style_instructions:
             system_message = system_message + style_instructions
 
         headers = {"Content-Type": "application/json"}

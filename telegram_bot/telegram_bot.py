@@ -1215,7 +1215,7 @@ Aqui estão algumas sugestões, ou você pode escolher outro nome:"""
         else:
             bot_name = data.replace("seq_bot_name_", "")
             context.user_data['sequential_setup_data']['bot_name'] = bot_name
-            await show_sequential_personality_selection_callback(query, user_id)
+            await show_sequential_personality_selection_callback(query, context, user_id)
             
     elif data.startswith("seq_personality_"):
         # Etapa 6: Personalidade
@@ -1234,7 +1234,7 @@ Aqui estão algumas sugestões, ou você pode escolher outro nome:"""
             }[personality]
             
             context.user_data['sequential_setup_data']['personality'] = personality_display
-            await show_sequential_language_selection_callback(query, user_id)
+            await show_sequential_language_selection_callback(query, context, user_id)
             
     elif data.startswith("seq_language_"):
         # Etapa 7: Estilo de linguagem
@@ -1280,7 +1280,7 @@ Isso define como eu me comporto e respondo:"""
     
     await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
-async def show_sequential_language_selection_callback(query, user_id: int):
+async def show_sequential_language_selection_callback(query, context: ContextTypes.DEFAULT_TYPE, user_id: int):
     """Mostrar seleção de estilo via callback"""
     keyboard = [
         [InlineKeyboardButton("🗣️ Formal", callback_data="seq_language_formal"),

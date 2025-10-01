@@ -78,13 +78,6 @@ tmp/
 *.tmp
 *.temp
 
-# ====================
-# DADOS ESPECÍFICOS DO ERON.IA
-# ====================
-# Pasta de conteúdo adulto - NÃO SUBIR
-/Eron-18/
-Eron-18/
-
 # Arquivos de perfil de usuários
 user_profiles.db
 *_profiles.db
